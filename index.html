@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Салбар дээр үлдэгдэлгүй бараа</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#222538; --border:#2e3348;
+    --accent:#4f6ef7; --accent2:#7c5af7; --green:#22c55e; --amber:#f59e0b;
+    --red:#ef4444; --text:#e2e8f0; --muted:#8892a4; --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+  /* ── Loading overlay ── */
+  #loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:16px;z-index:999;transition:opacity .4s}
+  #loader.hidden{opacity:0;pointer-events:none}
+  .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loader p{color:var(--muted);font-size:.9rem}
+
+  /* ── Header ── */
+  header{background:linear-gradient(135deg,#1a1d27,#222538);border-bottom:1px solid var(--border);
+    padding:18px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:1.25rem;font-weight:700}
+  .badge{background:var(--accent);color:#fff;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+  #updated-at{margin-left:auto;font-size:.75rem;color:var(--muted)}
+
+  /* ── Layout ── */
+  .main{padding:24px 32px;max-width:1700px;margin:0 auto}
+
+  /* ── Buttons shared ── */
+  .mode-tabs{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .mode-btn,.type-btn,.branch-btn{cursor:pointer;border-radius:var(--radius);font-weight:600;
+    transition:all .18s;border:1.5px solid var(--border);background:var(--surface);color:var(--muted)}
+  .mode-btn{padding:10px 22px;font-size:.9rem}
+  .mode-btn:hover{border-color:var(--accent);color:var(--text)}
+  .mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .mode-btn.imb.active{background:linear-gradient(135deg,var(--amber),var(--red));border-color:var(--amber)}
+
+  .section-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);margin-bottom:8px}
+  .type-btns,.branch-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .type-btn{padding:9px 20px;font-size:.88rem}
+  .type-btn:hover{border-color:var(--accent2);color:var(--text)}
+  .type-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .branch-btn{padding:8px 18px;font-size:.85rem;background:var(--surface2)}
+  .branch-btn:hover{border-color:var(--green);color:var(--text)}
+  .branch-btn.active{background:var(--green);border-color:var(--green);color:#0f2e0f;font-weight:700}
+
+  /* ── Stats ── */
+  .stats-bar{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:12px 20px;min-width:130px}
+  .stat-card .val{font-size:1.5rem;font-weight:800;color:var(--accent)}
+  .stat-card .lbl{font-size:.72rem;color:var(--muted);margin-top:2px}
+
+  /* ── Search ── */
+  .search-wrap{position:relative;margin-bottom:14px}
+  .search-wrap input{width:100%;padding:10px 16px 10px 38px;background:var(--surface);
+    border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);
+    font-size:.9rem;outline:none;transition:border-color .2s}
+  .search-wrap input:focus{border-color:var(--accent)}
+  .search-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+
+  /* ── Table ── */
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:.875rem}
+  thead tr{background:var(--surface2)}
+  th{padding:11px 14px;text-align:left;font-weight:700;color:var(--muted);font-size:.78rem;
+    text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);
+    white-space:nowrap;cursor:pointer;user-select:none}
+  th:hover{color:var(--text)}
+  th.sorted .arr{color:var(--accent);opacity:1!important}
+  .arr{margin-left:4px;opacity:.35;font-style:normal}
+  td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--surface2)}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .code-cell{font-family:monospace;font-size:.8rem;color:var(--muted)}
+  .bq{display:inline-block;padding:2px 9px;border-radius:20px;font-weight:700;font-size:.8rem}
+  .bq-wh{background:rgba(34,197,94,.15);color:var(--green)}
+  .imb-high{background:rgba(239,68,68,.13);color:var(--red);font-weight:700;
+    border-radius:6px;padding:2px 8px}
+  .imb-low{color:var(--muted)}
+  .pct-bar{display:flex;align-items:center;gap:7px}
+  .pct-inner{height:5px;border-radius:3px;min-width:2px;flex-shrink:0}
+  .tot-cell{font-weight:800}
+
+  /* ── Pagination ── */
+  .pagination{display:flex;align-items:center;gap:7px;margin-top:14px;flex-wrap:wrap}
+  .pg{padding:6px 11px;background:var(--surface);border:1px solid var(--border);
+    border-radius:7px;color:var(--muted);cursor:pointer;font-size:.8rem;transition:all .15s}
+  .pg:hover:not(:disabled){border-color:var(--accent);color:var(--text)}
+  .pg.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .pg:disabled{opacity:.3;cursor:default}
+  .pg-info{color:var(--muted);font-size:.8rem;margin-left:6px}
+
+  .empty{padding:60px;text-align:center;color:var(--muted)}
+  .empty .eico{font-size:2.8rem;margin-bottom:10px}
+  .hidden{display:none!important}
+
+  @media(max-width:768px){
+    .main{padding:14px}
+    header{padding:12px 14px}
+    header h1{font-size:1rem}
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Өгөгдөл ачааллаж байна…</p>
+</div>
+
+<header>
+  <div style="font-size:1.4rem">📦</div>
+  <h1>Салбар дээр үлдэгдэлгүй бараа</h1>
+  <span class="badge">ERP</span>
+  <span id="updated-at"></span>
+</header>
+
+<div class="main">
+
+  <div class="mode-tabs">
+    <button class="mode-btn active" onclick="setMode('missing')">🔍 Үлдэгдэлгүй барааны жагсаалт</button>
+    <button class="mode-btn imb"    onclick="setMode('imbalance')">⚖️ Тэнцвэргүй үлдэгдэл</button>
+  </div>
+
+  <!-- ══ MISSING PANEL ══ -->
+  <div id="missing-panel">
+    <div class="section-label">Бараа төрөл</div>
+    <div class="type-btns">
+      <button class="type-btn active" onclick="setType('жижиг')">🛒 Жижиг бараа</button>
+      <button class="type-btn"        onclick="setType('том')">🏗️ Том бараа</button>
+    </div>
+    <div class="section-label">Салбар сонгох</div>
+    <div class="branch-btns" id="branch-btns"></div>
+    <div class="stats-bar"   id="stats-bar"></div>
+    <div class="search-wrap">
+      <span class="ico">🔎</span>
+      <input type="text" id="search-input" placeholder="Барааны нэр эсвэл код хайх…" oninput="onSearch()">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="sortBy('код')"     id="th-код">    Код        <i class="arr">↕</i></th>
+          <th onclick="sortBy('нэр')"     id="th-нэр">    Барааны нэр <i class="arr">↕</i></th>
+          <th onclick="sortBy('агуулах')" id="th-агуулах" style="text-align:right">
+            Агуулах үлдэгдэл <i class="arr">↕</i></th>
+        </tr></thead>
+        <tbody id="missing-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="missing-pg"></div>
+  </div>
+
+  <!-- ══ IMBALANCE PANEL ══ -->
+  <div id="imbalance-panel" class="hidden">
+    <div class="section-label">Бараа төрөл</div>
+    <div class="type-btns">
+      <button class="type-btn active" id="imb-ji"  onclick="setImbType('жижиг')">🛒 Жижиг бараа</button>
+      <button class="type-btn"        id="imb-tom" onclick="setImbType('том')">🏗️ Том бараа</button>
+    </div>
+    <div class="stats-bar" id="imb-stats"></div>
+    <div class="search-wrap">
+      <span class="ico">🔎</span>
+      <input type="text" id="imb-search" placeholder="Барааны нэр эсвэл код хайх…" oninput="renderImbalance()">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Код</th>
+          <th>Барааны нэр</th>
+          <th class="num">Очир</th>
+          <th class="num">25 салбар</th>
+          <th class="num">Д1000</th>
+          <th class="num">Мишээл</th>
+          <th class="num">Алтан-Орд</th>
+          <th class="num">Чулуун овоо</th>
+          <th class="num">Агуулах</th>
+          <th class="num">Нийт</th>
+        </tr></thead>
+        <tbody id="imb-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="imb-pg"></div>
+  </div>
+
+</div><!-- .main -->
+
+<script>
+// ═══════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════
+let DATA = null;
+
+let mode      = 'missing';
+let curType   = 'жижиг';
+let curBranch = null;
+let sortCol   = 'агуулах';
+let sortDir   = -1;
+let searchVal = '';
+let curPage   = 1;
+const PAGE    = 50;
+
+let imbType   = 'жижиг';
+let imbPage   = 1;
+const IPAGE   = 50;
+
+const BRANCHES = [
+  'Очир салбар','25 салбар','Д1000 салбар',
+  'Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'
+];
+
+// ═══════════════════════════════════════════
+//  Boot — fetch stock.json
+// ═══════════════════════════════════════════
+async function boot() {
+  try {
+    // cache-bust so a fresh push always loads the latest file
+    const res  = await fetch('data/stock.json?v=' + Date.now());
+    if (!res.ok) throw new Error(res.statusText);
+    DATA = await res.json();
+  } catch (e) {
+    document.getElementById('loader').innerHTML =
+      '<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>' + e.message + '</p>';
+    return;
+  }
+
+  curBranch = BRANCHES[0];
+
+  if (DATA.generated)
+    document.getElementById('updated-at').textContent = 'Шинэчлэгдсэн: ' + DATA.generated;
+
+  document.getElementById('loader').classList.add('hidden');
+  renderBranchBtns();
+  renderMissing();
+}
+
+// ═══════════════════════════════════════════
+//  Mode / Type helpers
+// ═══════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach((b,i) =>
+    b.classList.toggle('active', (m==='missing' && i===0)||(m==='imbalance' && i===1)));
+  document.getElementById('missing-panel')  .classList.toggle('hidden', m !== 'missing');
+  document.getElementById('imbalance-panel').classList.toggle('hidden', m !== 'imbalance');
+  if (m === 'imbalance') renderImbalance();
+}
+
+function setType(t) {
+  curType = t; curPage = 1; searchVal = '';
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('#missing-panel .type-btn').forEach((b,i) =>
+    b.classList.toggle('active', (t==='жижиг'&&i===0)||(t==='том'&&i===1)));
+  curBranch = BRANCHES[0];
+  renderBranchBtns();
+  renderMissing();
+}
+
+function setImbType(t) {
+  imbType = t; imbPage = 1;
+  document.getElementById('imb-ji') .classList.toggle('active', t==='жижиг');
+  document.getElementById('imb-tom').classList.toggle('active', t==='том');
+  renderImbalance();
+}
+
+// ═══════════════════════════════════════════
+//  Missing panel
+// ═══════════════════════════════════════════
+function renderBranchBtns() {
+  document.getElementById('branch-btns').innerHTML =
+    BRANCHES.map(b =>
+      `<button class="branch-btn ${b===curBranch?'active':''}" onclick="setBranch('${b}')">${b}</button>`
+    ).join('');
+}
+
+function setBranch(b) { curBranch=b; curPage=1; renderBranchBtns(); renderMissing(); }
+
+function sortBy(col) {
+  if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=-1; }
+  curPage=1; renderMissing();
+}
+
+function onSearch() {
+  searchVal = document.getElementById('search-input').value.toLowerCase();
+  curPage=1; renderMissing();
+}
+
+function getFiltered() {
+  let items = ((DATA.missing[curType]||{})[curBranch]||[]).slice();
+  if (searchVal) items = items.filter(r =>
+    r.нэр.toLowerCase().includes(searchVal) || r.код.toLowerCase().includes(searchVal));
+  items.sort((a,b) => {
+    const av = sortCol==='нэр'?a.нэр : sortCol==='код'?a.код : a.агуулах;
+    const bv = sortCol==='нэр'?b.нэр : sortCol==='код'?b.код : b.агуулах;
+    return typeof av==='string' ? sortDir*av.localeCompare(bv,'mn') : sortDir*(av-bv);
+  });
+  return items;
+}
+
+function renderMissing() {
+  const items = getFiltered();
+  const totalWh = items.reduce((s,r)=>s+r.агуулах, 0);
+
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card"><div class="val">${items.length.toLocaleString()}</div><div class="lbl">Нийт бараа</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--green)">${Math.round(totalWh).toLocaleString()}</div><div class="lbl">Агуулах нийт тоо</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--amber);font-size:1rem;padding-top:4px">${curBranch}</div><div class="lbl">Сонгосон салбар</div></div>`;
+
+  // sort header arrows
+  ['код','нэр','агуулах'].forEach(c => {
+    const th = document.getElementById('th-'+c);
+    if (!th) return;
+    th.classList.toggle('sorted', sortCol===c);
+    th.querySelector('.arr').textContent = sortCol===c ? (sortDir>0?'↑':'↓') : '↕';
+  });
+
+  const totalPages = Math.max(1, Math.ceil(items.length/PAGE));
+  curPage = Math.min(curPage, totalPages);
+  const rows = items.slice((curPage-1)*PAGE, curPage*PAGE);
+
+  const tbody = document.getElementById('missing-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="3"><div class="empty"><div class="eico">✅</div>Бүх бараа салбарт байна</div></td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td class="code-cell">${r.код}</td>
+        <td>${r.нэр}</td>
+        <td class="num"><span class="bq bq-wh">${Math.round(r.агуулах).toLocaleString()}</span></td>
+      </tr>`).join('');
+  }
+  renderPg('missing-pg', curPage, totalPages, p => { curPage=p; renderMissing(); });
+}
+
+// ═══════════════════════════════════════════
+//  Imbalance panel
+// ═══════════════════════════════════════════
+function renderImbalance() {
+  const q = document.getElementById('imb-search').value.toLowerCase();
+  let items = (DATA.imbalance[imbType]||[]).slice();
+  if (q) items = items.filter(r =>
+    r.нэр.toLowerCase().includes(q) || r.код.toLowerCase().includes(q));
+
+  document.getElementById('imb-stats').innerHTML = `
+    <div class="stat-card"><div class="val" style="color:var(--amber)">${items.length.toLocaleString()}</div><div class="lbl">Тэнцвэргүй бараа</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.85rem;padding-top:4px">70%+ нэг салбарт</div><div class="lbl">Шалгуур</div></div>`;
+
+  const totalPages = Math.max(1, Math.ceil(items.length/IPAGE));
+  imbPage = Math.min(imbPage, totalPages);
+  const rows = items.slice((imbPage-1)*IPAGE, imbPage*IPAGE);
+
+  const bkeys = ['Очир салбар','25 салбар','Д1000 салбар','Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'];
+
+  const tbody = document.getElementById('imb-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="eico">⚖️</div>Тэнцвэргүй бараа олдсонгүй</div></td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(r => {
+      const tb = bkeys.reduce((s,b)=>s+(r[b]||0), 0);
+      const cells = bkeys.map(b => {
+        const qty = r[b]||0;
+        const pct = tb>0 ? qty/tb : 0;
+        const hi  = pct > 0.7;
+        return `<td class="num">
+          <div class="pct-bar">
+            <div class="pct-inner" style="width:${Math.round(pct*72)}px;background:${hi?'var(--red)':'var(--accent)'}"></div>
+            <span class="${hi?'imb-high':'imb-low'}">${qty>0?Math.round(qty).toLocaleString():'-'}</span>
+          </div></td>`;
+      }).join('');
+      const wh = r.агуулах||0;
+      return `<tr>
+        <td class="code-cell">${r.код}</td>
+        <td>${r.нэр}</td>
+        ${cells}
+        <td class="num"><span class="bq bq-wh">${wh>0?Math.round(wh).toLocaleString():'-'}</span></td>
+        <td class="num tot-cell">${Math.round(r.нийт).toLocaleString()}</td>
+      </tr>`;
+    }).join('');
+  }
+  renderPg('imb-pg', imbPage, totalPages, p => { imbPage=p; renderImbalance(); });
+}
+
+// ═══════════════════════════════════════════
+//  Pagination helper
+// ═══════════════════════════════════════════
+function renderPg(id, page, total, cb) {
+  const el = document.getElementById(id);
+  if (total<=1) { el.innerHTML=''; return; }
+  const go = p => `onclick="(${cb})(${p})"`;
+  let h = `<button class="pg" ${page<=1?'disabled':''} ${go(1)}>«</button>`;
+  h    += `<button class="pg" ${page<=1?'disabled':''} ${go(page-1)}>‹</button>`;
+  const s=Math.max(1,page-2), e=Math.min(total,page+2);
+  if (s>1) h += `<span style="color:var(--muted);padding:0 3px">…</span>`;
+  for (let i=s;i<=e;i++) h += `<button class="pg ${i===page?'active':''}" ${go(i)}>${i}</button>`;
+  if (e<total) h += `<span style="color:var(--muted);padding:0 3px">…</span>`;
+  h += `<button class="pg" ${page>=total?'disabled':''} ${go(page+1)}>›</button>`;
+  h += `<button class="pg" ${page>=total?'disabled':''} ${go(total)}>»</button>`;
+  h += `<span class="pg-info">${page} / ${total} хуудас</span>`;
+  el.innerHTML = h;
+}
+
+// ── start ──
+boot();
+</script>
+</body>
+</html>
