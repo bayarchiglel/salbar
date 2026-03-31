@@ -4,124 +4,199 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Салбар дээр үлдэгдэлгүй бараа</title>
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  :root {
-    --bg:#0f1117; --surface:#1a1d27; --surface2:#222538; --border:#2e3348;
-    --accent:#4f6ef7; --accent2:#7c5af7; --green:#22c55e; --amber:#f59e0b;
-    --red:#ef4444; --text:#e2e8f0; --muted:#8892a4; --radius:10px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222538;--surface3:#2a2e42;
+  --border:#2e3348;--accent:#4f6ef7;--accent2:#7c5af7;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;
+  --text:#e2e8f0;--muted:#8892a4;--radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
 
-  /* ── Loading overlay ── */
-  #loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:16px;z-index:999;transition:opacity .4s}
-  #loader.hidden{opacity:0;pointer-events:none}
-  .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);
-    border-radius:50%;animation:spin .8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  #loader p{color:var(--muted);font-size:.9rem}
+/* ── Loader ── */
+#loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;z-index:999;transition:opacity .4s}
+#loader.gone{opacity:0;pointer-events:none}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── Header ── */
-  header{background:linear-gradient(135deg,#1a1d27,#222538);border-bottom:1px solid var(--border);
-    padding:18px 32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  header h1{font-size:1.25rem;font-weight:700}
-  .badge{background:var(--accent);color:#fff;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
-  #updated-at{margin-left:auto;font-size:.75rem;color:var(--muted)}
+/* ── Header ── */
+header{background:linear-gradient(135deg,#1a1d27,#222538);border-bottom:1px solid var(--border);
+  padding:16px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+header h1{font-size:1.15rem;font-weight:700}
+.hbadge{background:var(--accent);color:#fff;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700}
+#updated-at{margin-left:auto;font-size:.72rem;color:var(--muted)}
 
-  /* ── Layout ── */
-  .main{padding:24px 32px;max-width:1700px;margin:0 auto}
+/* ── Main ── */
+.main{padding:22px 28px;max-width:1800px;margin:0 auto}
 
-  /* ── Buttons shared ── */
-  .mode-tabs{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
-  .mode-btn,.type-btn,.branch-btn{cursor:pointer;border-radius:var(--radius);font-weight:600;
-    transition:all .18s;border:1.5px solid var(--border);background:var(--surface);color:var(--muted)}
-  .mode-btn{padding:10px 22px;font-size:.9rem}
-  .mode-btn:hover{border-color:var(--accent);color:var(--text)}
-  .mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-  .mode-btn.imb.active{background:linear-gradient(135deg,var(--amber),var(--red));border-color:var(--amber)}
+/* ── Mode tabs ── */
+.mode-tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.mode-btn{padding:9px 20px;border-radius:var(--radius);border:1.5px solid var(--border);
+  background:var(--surface);color:var(--muted);cursor:pointer;font-size:.88rem;font-weight:600;transition:all .18s}
+.mode-btn:hover{border-color:var(--accent);color:var(--text)}
+.mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.mode-btn.imb.active{background:linear-gradient(135deg,var(--amber),var(--red));border-color:var(--amber)}
 
-  .section-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-    color:var(--muted);margin-bottom:8px}
-  .type-btns,.branch-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-  .type-btn{padding:9px 20px;font-size:.88rem}
-  .type-btn:hover{border-color:var(--accent2);color:var(--text)}
-  .type-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
-  .branch-btn{padding:8px 18px;font-size:.85rem;background:var(--surface2)}
-  .branch-btn:hover{border-color:var(--green);color:var(--text)}
-  .branch-btn.active{background:var(--green);border-color:var(--green);color:#0f2e0f;font-weight:700}
+/* ── Section label ── */
+.slabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:7px}
 
-  /* ── Stats ── */
-  .stats-bar{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-    padding:12px 20px;min-width:130px}
-  .stat-card .val{font-size:1.5rem;font-weight:800;color:var(--accent)}
-  .stat-card .lbl{font-size:.72rem;color:var(--muted);margin-top:2px}
+/* ── Type buttons ── */
+.type-btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+.type-btn{padding:8px 18px;border-radius:var(--radius);border:1.5px solid var(--border);
+  background:var(--surface);color:var(--muted);cursor:pointer;font-size:.85rem;font-weight:600;transition:all .18s}
+.type-btn:hover{border-color:var(--accent2);color:var(--text)}
+.type-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
 
-  /* ── Search ── */
-  .search-wrap{position:relative;margin-bottom:14px}
-  .search-wrap input{width:100%;padding:10px 16px 10px 38px;background:var(--surface);
-    border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);
-    font-size:.9rem;outline:none;transition:border-color .2s}
-  .search-wrap input:focus{border-color:var(--accent)}
-  .search-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+/* ── Branch buttons ── */
+.branch-btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+.branch-btn{padding:7px 16px;border-radius:var(--radius);border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--muted);cursor:pointer;font-size:.83rem;font-weight:500;transition:all .18s}
+.branch-btn:hover{border-color:var(--green);color:var(--text)}
+.branch-btn.active{background:var(--green);border-color:var(--green);color:#0f2e0f;font-weight:700}
 
-  /* ── Table ── */
-  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
-  table{width:100%;border-collapse:collapse;font-size:.875rem}
-  thead tr{background:var(--surface2)}
-  th{padding:11px 14px;text-align:left;font-weight:700;color:var(--muted);font-size:.78rem;
-    text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);
-    white-space:nowrap;cursor:pointer;user-select:none}
-  th:hover{color:var(--text)}
-  th.sorted .arr{color:var(--accent);opacity:1!important}
-  .arr{margin-left:4px;opacity:.35;font-style:normal}
-  td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
-  tr:last-child td{border-bottom:none}
-  tbody tr:hover{background:var(--surface2)}
-  .num{text-align:right;font-variant-numeric:tabular-nums}
-  .code-cell{font-family:monospace;font-size:.8rem;color:var(--muted)}
-  .bq{display:inline-block;padding:2px 9px;border-radius:20px;font-weight:700;font-size:.8rem}
-  .bq-wh{background:rgba(34,197,94,.15);color:var(--green)}
-  .imb-high{background:rgba(239,68,68,.13);color:var(--red);font-weight:700;
-    border-radius:6px;padding:2px 8px}
-  .imb-low{color:var(--muted)}
-  .pct-bar{display:flex;align-items:center;gap:7px}
-  .pct-inner{height:5px;border-radius:3px;min-width:2px;flex-shrink:0}
-  .tot-cell{font-weight:800}
+/* ── Toolbar row ── */
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end}
+.toolbar-group{display:flex;flex-direction:column;gap:5px}
+.toolbar-group label{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 
-  /* ── Pagination ── */
-  .pagination{display:flex;align-items:center;gap:7px;margin-top:14px;flex-wrap:wrap}
-  .pg{padding:6px 11px;background:var(--surface);border:1px solid var(--border);
-    border-radius:7px;color:var(--muted);cursor:pointer;font-size:.8rem;transition:all .15s}
-  .pg:hover:not(:disabled){border-color:var(--accent);color:var(--text)}
-  .pg.active{background:var(--accent);border-color:var(--accent);color:#fff}
-  .pg:disabled{opacity:.3;cursor:default}
-  .pg-info{color:var(--muted);font-size:.8rem;margin-left:6px}
+/* ── Search ── */
+.search-wrap{position:relative}
+.search-wrap input{width:240px;padding:8px 14px 8px 34px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.87rem;outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap .sico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem}
 
-  .empty{padding:60px;text-align:center;color:var(--muted)}
-  .empty .eico{font-size:2.8rem;margin-bottom:10px}
-  .hidden{display:none!important}
+/* ── Multi-select dropdown ── */
+.ms-wrap{position:relative}
+.ms-trigger{min-width:160px;padding:8px 30px 8px 12px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);
+  cursor:pointer;font-size:.83rem;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;transition:border-color .2s}
+.ms-trigger:hover,.ms-trigger.open{border-color:var(--accent)}
+.ms-trigger .arrow{font-size:.65rem;opacity:.6;flex-shrink:0;transition:transform .2s}
+.ms-trigger.open .arrow{transform:rotate(180deg)}
+.ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;max-width:280px;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:500;overflow:hidden}
+.ms-search{padding:8px 10px;border-bottom:1px solid var(--border)}
+.ms-search input{width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:5px 9px;color:var(--text);font-size:.82rem;outline:none}
+.ms-list{max-height:220px;overflow-y:auto}
+.ms-list::-webkit-scrollbar{width:5px}
+.ms-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.ms-item{display:flex;align-items:center;gap:9px;padding:7px 12px;cursor:pointer;font-size:.83rem;transition:background .12s}
+.ms-item:hover{background:var(--surface3)}
+.ms-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.ms-actions{display:flex;gap:8px;padding:8px 10px;border-top:1px solid var(--border)}
+.ms-actions button{flex:1;padding:5px;background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;color:var(--muted);font-size:.76rem;cursor:pointer;transition:all .15s}
+.ms-actions button:hover{border-color:var(--accent);color:var(--text)}
+.ms-badge{background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:.68rem;font-weight:700;margin-left:4px}
 
-  @media(max-width:768px){
-    .main{padding:14px}
-    header{padding:12px 14px}
-    header h1{font-size:1rem}
-  }
+/* ── Warehouse toggle ── */
+.wh-toggle{display:flex;gap:0;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.wh-toggle button{padding:7px 13px;background:var(--surface);border:none;color:var(--muted);
+  cursor:pointer;font-size:.78rem;font-weight:600;transition:all .15s;white-space:nowrap}
+.wh-toggle button:not(:last-child){border-right:1px solid var(--border)}
+.wh-toggle button.active{background:var(--cyan);color:#051a1f;font-weight:700}
+
+/* ── Export buttons ── */
+.export-btns{display:flex;gap:8px;margin-left:auto}
+.exp-btn{padding:7px 14px;border-radius:var(--radius);border:1.5px solid var(--border);
+  background:var(--surface);color:var(--muted);cursor:pointer;font-size:.8rem;font-weight:600;
+  transition:all .18s;white-space:nowrap}
+.exp-btn:hover{border-color:var(--amber);color:var(--amber)}
+.exp-btn.pdf:hover{border-color:var(--red);color:var(--red)}
+
+/* ── Stats ── */
+.stats-bar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 18px;min-width:120px}
+.stat-card .val{font-size:1.45rem;font-weight:800;color:var(--accent)}
+.stat-card .lbl{font-size:.7rem;color:var(--muted);margin-top:2px}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.855rem}
+thead tr{background:var(--surface2)}
+th{padding:10px 13px;text-align:left;font-weight:700;color:var(--muted);font-size:.76rem;
+  text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);
+  white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+th:hover{color:var(--text)}
+th.sorted{color:var(--accent)}
+.arr{margin-left:3px;opacity:.35;font-style:normal}
+th.sorted .arr{opacity:1}
+td{padding:8px 13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.code-cell{font-family:monospace;font-size:.78rem;color:var(--muted)}
+.cat-pill{display:inline-block;background:rgba(79,110,247,.13);color:var(--accent);
+  padding:2px 8px;border-radius:12px;font-size:.74rem;font-weight:600;white-space:nowrap}
+.subcat-pill{display:inline-block;background:rgba(124,90,247,.13);color:var(--accent2);
+  padding:2px 8px;border-radius:12px;font-size:.74rem;font-weight:600;white-space:nowrap}
+.bq{display:inline-block;padding:2px 8px;border-radius:12px;font-weight:700;font-size:.78rem;white-space:nowrap}
+.bq-wh{background:rgba(34,197,94,.14);color:var(--green)}
+.bq-wh-sm{background:rgba(6,182,212,.12);color:var(--cyan);font-size:.72rem;padding:1px 6px;margin:1px}
+.imb-high{background:rgba(239,68,68,.13);color:var(--red);font-weight:700;border-radius:6px;padding:2px 7px}
+.imb-low{color:var(--muted)}
+.pct-bar{display:flex;align-items:center;gap:6px}
+.pct-inner{height:5px;border-radius:3px;min-width:2px;flex-shrink:0}
+.tot-cell{font-weight:800}
+.wh-detail{font-size:.75rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+
+/* ── Pagination ── */
+.pagination{display:flex;align-items:center;gap:6px;margin-top:13px;flex-wrap:wrap}
+.pg{padding:5px 10px;background:var(--surface);border:1px solid var(--border);
+  border-radius:7px;color:var(--muted);cursor:pointer;font-size:.78rem;transition:all .15s}
+.pg:hover:not([disabled]){border-color:var(--accent);color:var(--text)}
+.pg.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.pg[disabled]{opacity:.3;cursor:default;pointer-events:none}
+.pg-info{color:var(--muted);font-size:.78rem;margin-left:5px}
+
+.empty{padding:56px;text-align:center;color:var(--muted)}
+.empty .eico{font-size:2.6rem;margin-bottom:9px}
+.hidden{display:none!important}
+.divider{height:1px;background:var(--border);margin:18px 0}
+
+/* ── Print / PDF styles ── */
+@media print{
+  #loader,header .hbadge,.mode-tabs,.type-btns,.branch-btns,.toolbar,
+  .export-btns,.pagination,#updated-at{display:none!important}
+  body{background:#fff;color:#000}
+  .table-wrap{border:1px solid #ccc}
+  thead tr{background:#f0f0f0!important}
+  th,td{color:#000!important}
+  .bq-wh{background:#e8f5e9!important;color:#2e7d32!important}
+  .cat-pill{background:#e3f2fd!important;color:#1565c0!important}
+  .subcat-pill{background:#ede7f6!important;color:#4527a0!important}
+  .print-header{display:block!important}
+}
+.print-header{display:none;margin-bottom:18px}
+.print-header h2{font-size:1.1rem;font-weight:700}
+.print-header p{font-size:.82rem;color:#555;margin-top:4px}
+
+@media(max-width:768px){
+  .main{padding:12px}
+  header{padding:10px 14px}
+  header h1{font-size:.95rem}
+  .search-wrap input{width:100%}
+  .toolbar{flex-direction:column}
+}
 </style>
 </head>
 <body>
 
-<!-- Loading -->
-<div id="loader">
-  <div class="spinner"></div>
-  <p>Өгөгдөл ачааллаж байна…</p>
-</div>
+<div id="loader"><div class="spinner"></div><p style="color:var(--muted)">Өгөгдөл ачааллаж байна…</p></div>
 
 <header>
-  <div style="font-size:1.4rem">📦</div>
+  <div style="font-size:1.3rem">📦</div>
   <h1>Салбар дээр үлдэгдэлгүй бараа</h1>
-  <span class="badge">ERP</span>
+  <span class="hbadge">ERP</span>
   <span id="updated-at"></span>
 </header>
 
@@ -129,286 +204,646 @@
 
   <div class="mode-tabs">
     <button class="mode-btn active" onclick="setMode('missing')">🔍 Үлдэгдэлгүй барааны жагсаалт</button>
-    <button class="mode-btn imb"    onclick="setMode('imbalance')">⚖️ Тэнцвэргүй үлдэгдэл</button>
+    <button class="mode-btn imb"   onclick="setMode('imbalance')">⚖️ Тэнцвэргүй үлдэгдэл</button>
   </div>
 
-  <!-- ══ MISSING PANEL ══ -->
+  <!-- ══════════════ MISSING PANEL ══════════════ -->
   <div id="missing-panel">
-    <div class="section-label">Бараа төрөл</div>
+    <div class="print-header" id="print-title-missing">
+      <h2 id="ph-branch">—</h2>
+      <p id="ph-date">—</p>
+    </div>
+
+    <div class="slabel">Бараа төрөл</div>
     <div class="type-btns">
       <button class="type-btn active" onclick="setType('жижиг')">🛒 Жижиг бараа</button>
       <button class="type-btn"        onclick="setType('том')">🏗️ Том бараа</button>
     </div>
-    <div class="section-label">Салбар сонгох</div>
+
+    <div class="slabel">Салбар сонгох</div>
     <div class="branch-btns" id="branch-btns"></div>
-    <div class="stats-bar"   id="stats-bar"></div>
-    <div class="search-wrap">
-      <span class="ico">🔎</span>
-      <input type="text" id="search-input" placeholder="Барааны нэр эсвэл код хайх…" oninput="onSearch()">
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="missing-toolbar">
+      <div class="toolbar-group">
+        <label>Хайх</label>
+        <div class="search-wrap">
+          <span class="sico">🔎</span>
+          <input type="text" id="m-search" placeholder="Нэр эсвэл код…" oninput="mFilter()">
+        </div>
+      </div>
+      <div class="toolbar-group" id="wrap-cat">
+        <label>Ангилал</label>
+        <div id="ms-cat" class="ms-wrap"></div>
+      </div>
+      <div class="toolbar-group" id="wrap-subcat">
+        <label>Дэд ангилал</label>
+        <div id="ms-subcat" class="ms-wrap"></div>
+      </div>
+      <div class="toolbar-group">
+        <label>Агуулах харах</label>
+        <div class="wh-toggle">
+          <button id="wh-combined" class="active" onclick="setWhView('combined')">Нийт</button>
+          <button id="wh-expanded" onclick="setWhView('expanded')">Дэлгэрэнгүй</button>
+        </div>
+      </div>
+      <div class="export-btns">
+        <button class="exp-btn" onclick="exportExcel()">📥 Excel татах</button>
+        <button class="exp-btn pdf" onclick="exportPDF()">🖨️ PDF хэвлэх</button>
+      </div>
     </div>
+
+    <div class="stats-bar" id="m-stats"></div>
+
     <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th onclick="sortBy('код')"     id="th-код">    Код        <i class="arr">↕</i></th>
-          <th onclick="sortBy('нэр')"     id="th-нэр">    Барааны нэр <i class="arr">↕</i></th>
-          <th onclick="sortBy('агуулах')" id="th-агуулах" style="text-align:right">
-            Агуулах үлдэгдэл <i class="arr">↕</i></th>
-        </tr></thead>
-        <tbody id="missing-tbody"></tbody>
+      <table id="m-table">
+        <thead><tr id="m-thead-row"></tr></thead>
+        <tbody id="m-tbody"></tbody>
       </table>
     </div>
-    <div class="pagination" id="missing-pg"></div>
+    <div class="pagination" id="m-pg"></div>
   </div>
 
-  <!-- ══ IMBALANCE PANEL ══ -->
+  <!-- ══════════════ IMBALANCE PANEL ══════════════ -->
   <div id="imbalance-panel" class="hidden">
-    <div class="section-label">Бараа төрөл</div>
+    <div class="print-header" id="print-title-imb">
+      <h2>Тэнцвэргүй үлдэгдэл</h2>
+      <p id="ph-imb-date">—</p>
+    </div>
+
+    <div class="slabel">Бараа төрөл</div>
     <div class="type-btns">
       <button class="type-btn active" id="imb-ji"  onclick="setImbType('жижиг')">🛒 Жижиг бараа</button>
       <button class="type-btn"        id="imb-tom" onclick="setImbType('том')">🏗️ Том бараа</button>
     </div>
-    <div class="stats-bar" id="imb-stats"></div>
-    <div class="search-wrap">
-      <span class="ico">🔎</span>
-      <input type="text" id="imb-search" placeholder="Барааны нэр эсвэл код хайх…" oninput="renderImbalance()">
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <label>Хайх</label>
+        <div class="search-wrap">
+          <span class="sico">🔎</span>
+          <input type="text" id="i-search" placeholder="Нэр эсвэл код…" oninput="iFilter()">
+        </div>
+      </div>
+      <div class="toolbar-group">
+        <label>Ангилал</label>
+        <div id="ms-icat" class="ms-wrap"></div>
+      </div>
+      <div class="toolbar-group">
+        <label>Дэд ангилал</label>
+        <div id="ms-isub" class="ms-wrap"></div>
+      </div>
+      <div class="toolbar-group">
+        <label>Салбар</label>
+        <div id="ms-ibranch" class="ms-wrap"></div>
+      </div>
+      <div class="toolbar-group">
+        <label>Агуулах харах</label>
+        <div class="wh-toggle">
+          <button id="iwh-combined" class="active" onclick="setIWhView('combined')">Нийт</button>
+          <button id="iwh-expanded" onclick="setIWhView('expanded')">Дэлгэрэнгүй</button>
+        </div>
+      </div>
+      <div class="export-btns">
+        <button class="exp-btn" onclick="exportImbExcel()">📥 Excel татах</button>
+        <button class="exp-btn pdf" onclick="exportImbPDF()">🖨️ PDF хэвлэх</button>
+      </div>
     </div>
+
+    <div class="stats-bar" id="i-stats"></div>
+
     <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Код</th>
-          <th>Барааны нэр</th>
-          <th class="num">Очир</th>
-          <th class="num">25 салбар</th>
-          <th class="num">Д1000</th>
-          <th class="num">Мишээл</th>
-          <th class="num">Алтан-Орд</th>
-          <th class="num">Чулуун овоо</th>
-          <th class="num">Агуулах</th>
-          <th class="num">Нийт</th>
-        </tr></thead>
-        <tbody id="imb-tbody"></tbody>
+      <table id="i-table">
+        <thead><tr id="i-thead-row"></tr></thead>
+        <tbody id="i-tbody"></tbody>
       </table>
     </div>
-    <div class="pagination" id="imb-pg"></div>
+    <div class="pagination" id="i-pg"></div>
   </div>
 
 </div><!-- .main -->
 
 <script>
-// ═══════════════════════════════════════════
-//  State
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  DATA & STATE
+// ═══════════════════════════════════════════════════════
 let DATA = null;
 
+const BRANCHES = ['Очир салбар','25 салбар','Д1000 салбар','Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'];
+
 let mode      = 'missing';
-let curType   = 'жижиг';
-let curBranch = null;
-let sortCol   = 'агуулах';
-let sortDir   = -1;
-let searchVal = '';
-let curPage   = 1;
-const PAGE    = 50;
+let mType     = 'жижиг';
+let mBranch   = BRANCHES[0];
+let mSortCol  = 'агуулах_нийт';
+let mSortDir  = -1;
+let mPage     = 1;
+let whView    = 'combined'; // 'combined' | 'expanded'
+const MPAGE   = 50;
 
-let imbType   = 'жижиг';
-let imbPage   = 1;
+// Active filters for missing panel
+let mCats     = new Set(); // empty = all
+let mSubs     = new Set();
+
+let iType     = 'жижиг';
+let iSortCol  = 'нийт';
+let iSortDir  = -1;
+let iPage     = 1;
+let iWhView   = 'combined';
 const IPAGE   = 50;
+let iCats     = new Set();
+let iSubs     = new Set();
+let iBranches = new Set();
 
-const BRANCHES = [
-  'Очир салбар','25 салбар','Д1000 салбар',
-  'Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'
-];
-
-// ═══════════════════════════════════════════
-//  Boot — fetch stock.json
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
 async function boot() {
   try {
-    // cache-bust so a fresh push always loads the latest file
-    const res  = await fetch('data/stock.json?v=' + Date.now());
+    const res = await fetch('data/stock.json?v=' + Date.now());
     if (!res.ok) throw new Error(res.statusText);
     DATA = await res.json();
-  } catch (e) {
+  } catch(e) {
     document.getElementById('loader').innerHTML =
-      '<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>' + e.message + '</p>';
+      `<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>${e.message}</p>`;
     return;
   }
-
-  curBranch = BRANCHES[0];
-
   if (DATA.generated)
     document.getElementById('updated-at').textContent = 'Шинэчлэгдсэн: ' + DATA.generated;
+  document.getElementById('loader').classList.add('gone');
+  initMissing();
+  initImbalance();
+}
 
-  document.getElementById('loader').classList.add('hidden');
+// ═══════════════════════════════════════════════════════
+//  MODE
+// ═══════════════════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach((b,i)=>
+    b.classList.toggle('active',(m==='missing'&&i===0)||(m==='imbalance'&&i===1)));
+  document.getElementById('missing-panel').classList.toggle('hidden', m!=='missing');
+  document.getElementById('imbalance-panel').classList.toggle('hidden', m!=='imbalance');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MULTI-SELECT DROPDOWN  (generic factory)
+// ═══════════════════════════════════════════════════════
+function buildMS(containerId, placeholder, options, onchange) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  let selected = new Set();
+  let filterQ  = '';
+
+  wrap.innerHTML = '';
+  const trigger = document.createElement('div');
+  trigger.className = 'ms-trigger';
+  trigger.innerHTML = `<span class="ms-label">${placeholder}</span><span class="arrow">▼</span>`;
+  wrap.appendChild(trigger);
+
+  const dd = document.createElement('div');
+  dd.className = 'ms-dropdown hidden';
+  dd.innerHTML = `
+    <div class="ms-search"><input type="text" placeholder="Хайх…" oninput="this.closest('.ms-dropdown')._filterOpts(this.value)"></div>
+    <div class="ms-list"></div>
+    <div class="ms-actions">
+      <button onclick="this.closest('.ms-dropdown')._selAll()">Бүгдийг сонгох</button>
+      <button onclick="this.closest('.ms-dropdown')._clear()">Цэвэрлэх</button>
+    </div>`;
+  wrap.appendChild(dd);
+
+  function renderOpts() {
+    const list = dd.querySelector('.ms-list');
+    const vis  = options.filter(o => !filterQ || o.toLowerCase().includes(filterQ));
+    list.innerHTML = vis.length
+      ? vis.map(o => `<label class="ms-item">
+          <input type="checkbox" ${selected.has(o)?'checked':''} onchange="this.closest('.ms-dropdown')._toggle('${o.replace(/'/g,"\\'")}',this.checked)">
+          <span>${o}</span>
+        </label>`).join('')
+      : `<div class="ms-item" style="color:var(--muted)">Олдсонгүй</div>`;
+  }
+
+  function updateTrigger() {
+    const lbl = trigger.querySelector('.ms-label');
+    if (selected.size === 0) {
+      lbl.innerHTML = placeholder;
+    } else if (selected.size <= 2) {
+      lbl.innerHTML = [...selected].join(', ');
+    } else {
+      lbl.innerHTML = `${[...selected][0]} <span class="ms-badge">+${selected.size-1}</span>`;
+    }
+    onchange(selected);
+  }
+
+  dd._toggle = (o, checked) => { checked ? selected.add(o) : selected.delete(o); renderOpts(); updateTrigger(); };
+  dd._selAll = () => { options.forEach(o => selected.add(o)); renderOpts(); updateTrigger(); };
+  dd._clear  = () => { selected.clear(); renderOpts(); updateTrigger(); };
+  dd._filterOpts = q => { filterQ = q.toLowerCase(); renderOpts(); };
+  dd._setOptions = (opts, keepSelected) => {
+    if (!keepSelected) selected.clear();
+    else selected = new Set([...selected].filter(s => opts.includes(s)));
+    options = opts; filterQ = ''; renderOpts(); updateTrigger();
+  };
+  dd._getSelected = () => selected;
+
+  trigger.onclick = (e) => {
+    e.stopPropagation();
+    const open = !dd.classList.contains('hidden');
+    // close all others
+    document.querySelectorAll('.ms-dropdown').forEach(d => d.classList.add('hidden'));
+    document.querySelectorAll('.ms-trigger').forEach(t => t.classList.remove('open'));
+    if (!open) {
+      dd.classList.remove('hidden');
+      trigger.classList.add('open');
+      renderOpts();
+    }
+  };
+
+  wrap._dd = dd;
+  wrap._getSelected = () => selected;
+  renderOpts();
+  return { dd, trigger, getSelected: ()=>selected };
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.ms-dropdown').forEach(d=>d.classList.add('hidden'));
+  document.querySelectorAll('.ms-trigger').forEach(t=>t.classList.remove('open'));
+});
+
+// ═══════════════════════════════════════════════════════
+//  MISSING PANEL
+// ═══════════════════════════════════════════════════════
+let mCatDD = null, mSubDD = null;
+
+function initMissing() {
   renderBranchBtns();
+  mCatDD = buildMS('ms-cat',  'Бүх ангилал',   getMCats(), sel => { mCats=sel; updateSubcatOpts(); mPage=1; renderMissing(); });
+  mSubDD = buildMS('ms-subcat','Бүх дэд ангилал', getMSubs(), sel => { mSubs=sel; mPage=1; renderMissing(); });
   renderMissing();
 }
 
-// ═══════════════════════════════════════════
-//  Mode / Type helpers
-// ═══════════════════════════════════════════
-function setMode(m) {
-  mode = m;
-  document.querySelectorAll('.mode-btn').forEach((b,i) =>
-    b.classList.toggle('active', (m==='missing' && i===0)||(m==='imbalance' && i===1)));
-  document.getElementById('missing-panel')  .classList.toggle('hidden', m !== 'missing');
-  document.getElementById('imbalance-panel').classList.toggle('hidden', m !== 'imbalance');
-  if (m === 'imbalance') renderImbalance();
+function getMCats() {
+  const meta = (DATA.meta||{})[mType] || {};
+  return meta.categories || [];
+}
+function getMSubs(cats) {
+  const meta = (DATA.meta||{})[mType] || {};
+  const sm   = meta.subcategories || {};
+  if (!cats || cats.size === 0) return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
+  let out = [];
+  cats.forEach(c => { if (sm[c]) out = out.concat(sm[c]); });
+  return [...new Set(out)].sort();
+}
+
+function updateSubcatOpts() {
+  if (!mSubDD) return;
+  mSubDD.dd._setOptions(getMSubs(mCats), true);
 }
 
 function setType(t) {
-  curType = t; curPage = 1; searchVal = '';
-  document.getElementById('search-input').value = '';
-  document.querySelectorAll('#missing-panel .type-btn').forEach((b,i) =>
-    b.classList.toggle('active', (t==='жижиг'&&i===0)||(t==='том'&&i===1)));
-  curBranch = BRANCHES[0];
+  mType=t; mPage=1; mCats=new Set(); mSubs=new Set();
+  document.querySelectorAll('#missing-panel .type-btn').forEach((b,i)=>
+    b.classList.toggle('active',(t==='жижиг'&&i===0)||(t==='том'&&i===1)));
+  mBranch=BRANCHES[0];
   renderBranchBtns();
+  // Reinit dropdowns with new type options
+  mCatDD = buildMS('ms-cat',  'Бүх ангилал',   getMCats(), sel => { mCats=sel; updateSubcatOpts(); mPage=1; renderMissing(); });
+  mSubDD = buildMS('ms-subcat','Бүх дэд ангилал', getMSubs(), sel => { mSubs=sel; mPage=1; renderMissing(); });
   renderMissing();
 }
 
-function setImbType(t) {
-  imbType = t; imbPage = 1;
-  document.getElementById('imb-ji') .classList.toggle('active', t==='жижиг');
-  document.getElementById('imb-tom').classList.toggle('active', t==='том');
-  renderImbalance();
-}
-
-// ═══════════════════════════════════════════
-//  Missing panel
-// ═══════════════════════════════════════════
 function renderBranchBtns() {
   document.getElementById('branch-btns').innerHTML =
-    BRANCHES.map(b =>
-      `<button class="branch-btn ${b===curBranch?'active':''}" onclick="setBranch('${b}')">${b}</button>`
-    ).join('');
+    BRANCHES.map(b=>`<button class="branch-btn ${b===mBranch?'active':''}" onclick="setBranch('${b}')">${b}</button>`).join('');
 }
 
-function setBranch(b) { curBranch=b; curPage=1; renderBranchBtns(); renderMissing(); }
-
-function sortBy(col) {
-  if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=-1; }
-  curPage=1; renderMissing();
+function setBranch(b) { mBranch=b; mPage=1; renderBranchBtns(); renderMissing(); }
+function setWhView(v) {
+  whView=v;
+  document.getElementById('wh-combined').classList.toggle('active',v==='combined');
+  document.getElementById('wh-expanded').classList.toggle('active',v==='expanded');
+  renderMissing();
 }
+function mSort(col) { if(mSortCol===col)mSortDir*=-1; else{mSortCol=col;mSortDir=-1;} mPage=1; renderMissing(); }
+function mFilter() { mPage=1; renderMissing(); }
 
-function onSearch() {
-  searchVal = document.getElementById('search-input').value.toLowerCase();
-  curPage=1; renderMissing();
-}
-
-function getFiltered() {
-  let items = ((DATA.missing[curType]||{})[curBranch]||[]).slice();
-  if (searchVal) items = items.filter(r =>
-    r.нэр.toLowerCase().includes(searchVal) || r.код.toLowerCase().includes(searchVal));
-  items.sort((a,b) => {
-    const av = sortCol==='нэр'?a.нэр : sortCol==='код'?a.код : a.агуулах;
-    const bv = sortCol==='нэр'?b.нэр : sortCol==='код'?b.код : b.агуулах;
-    return typeof av==='string' ? sortDir*av.localeCompare(bv,'mn') : sortDir*(av-bv);
+function getMFiltered() {
+  let items = ((DATA.missing[mType]||{})[mBranch]||[]).slice();
+  const q = document.getElementById('m-search').value.toLowerCase();
+  if (q) items = items.filter(r => r.нэр.toLowerCase().includes(q) || r.код.toLowerCase().includes(q));
+  if (mCats.size) items = items.filter(r => mCats.has(r.ангилал));
+  if (mSubs.size) items = items.filter(r => mSubs.has(r.дэд));
+  items.sort((a,b)=>{
+    const av = mSortCol==='нэр'?a.нэр:mSortCol==='код'?a.код:mSortCol==='ангилал'?a.ангилал:a.агуулах_нийт;
+    const bv = mSortCol==='нэр'?b.нэр:mSortCol==='код'?b.код:mSortCol==='ангилал'?b.ангилал:b.агуулах_нийт;
+    return typeof av==='string'?mSortDir*av.localeCompare(bv,'mn'):mSortDir*(av-bv);
   });
   return items;
 }
 
 function renderMissing() {
-  const items = getFiltered();
-  const totalWh = items.reduce((s,r)=>s+r.агуулах, 0);
+  const items = getMFiltered();
+  const totalWh = items.reduce((s,r)=>s+r.агуулах_нийт,0);
 
-  document.getElementById('stats-bar').innerHTML = `
+  document.getElementById('m-stats').innerHTML = `
     <div class="stat-card"><div class="val">${items.length.toLocaleString()}</div><div class="lbl">Нийт бараа</div></div>
     <div class="stat-card"><div class="val" style="color:var(--green)">${Math.round(totalWh).toLocaleString()}</div><div class="lbl">Агуулах нийт тоо</div></div>
-    <div class="stat-card"><div class="val" style="color:var(--amber);font-size:1rem;padding-top:4px">${curBranch}</div><div class="lbl">Сонгосон салбар</div></div>`;
+    <div class="stat-card"><div class="val" style="color:var(--amber);font-size:.95rem;padding-top:5px">${mBranch}</div><div class="lbl">Сонгосон салбар</div></div>`;
 
-  // sort header arrows
-  ['код','нэр','агуулах'].forEach(c => {
-    const th = document.getElementById('th-'+c);
-    if (!th) return;
-    th.classList.toggle('sorted', sortCol===c);
-    th.querySelector('.arr').textContent = sortCol===c ? (sortDir>0?'↑':'↓') : '↕';
-  });
+  // Build thead
+  const hasCat = getMCats().length > 0;
+  const meta   = (DATA.meta||{})[mType]||{};
+  const whKeys = meta.warehouses || [];
 
-  const totalPages = Math.max(1, Math.ceil(items.length/PAGE));
-  curPage = Math.min(curPage, totalPages);
-  const rows = items.slice((curPage-1)*PAGE, curPage*PAGE);
-
-  const tbody = document.getElementById('missing-tbody');
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="3"><div class="empty"><div class="eico">✅</div>Бүх бараа салбарт байна</div></td></tr>`;
-  } else {
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td class="code-cell">${r.код}</td>
-        <td>${r.нэр}</td>
-        <td class="num"><span class="bq bq-wh">${Math.round(r.агуулах).toLocaleString()}</span></td>
-      </tr>`).join('');
+  const headCols = [
+    {k:'код',    l:'Код'},
+    {k:'нэр',    l:'Барааны нэр'},
+    ...(hasCat ? [{k:'ангилал',l:'Ангилал'},{k:'дэд',l:'Дэд ангилал'}] : []),
+    {k:'агуулах_нийт', l:'Агуулах нийт', num:true},
+  ];
+  if (whView==='expanded') {
+    whKeys.forEach(wk => headCols.push({k:'_wh_'+wk, l:wk, num:true, noSort:true}));
   }
-  renderPg('missing-pg', curPage, totalPages, p => { curPage=p; renderMissing(); });
-}
 
-// ═══════════════════════════════════════════
-//  Imbalance panel
-// ═══════════════════════════════════════════
-function renderImbalance() {
-  const q = document.getElementById('imb-search').value.toLowerCase();
-  let items = (DATA.imbalance[imbType]||[]).slice();
-  if (q) items = items.filter(r =>
-    r.нэр.toLowerCase().includes(q) || r.код.toLowerCase().includes(q));
+  document.getElementById('m-thead-row').innerHTML = headCols.map(c=>`
+    <th class="${mSortCol===c.k&&!c.noSort?'sorted':''}" ${c.noSort?'':('onclick="mSort(\''+c.k+'\')"')} ${c.num?'style="text-align:right"':''}>
+      ${c.l}${c.noSort?'':('<i class="arr">'+(mSortCol===c.k?(mSortDir>0?'↑':'↓'):'↕')+'</i>')}
+    </th>`).join('');
 
-  document.getElementById('imb-stats').innerHTML = `
-    <div class="stat-card"><div class="val" style="color:var(--amber)">${items.length.toLocaleString()}</div><div class="lbl">Тэнцвэргүй бараа</div></div>
-    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.85rem;padding-top:4px">70%+ нэг салбарт</div><div class="lbl">Шалгуур</div></div>`;
+  const totalPages = Math.max(1,Math.ceil(items.length/MPAGE));
+  mPage = Math.min(mPage,totalPages);
+  const rows = items.slice((mPage-1)*MPAGE, mPage*MPAGE);
 
-  const totalPages = Math.max(1, Math.ceil(items.length/IPAGE));
-  imbPage = Math.min(imbPage, totalPages);
-  const rows = items.slice((imbPage-1)*IPAGE, imbPage*IPAGE);
-
-  const bkeys = ['Очир салбар','25 салбар','Д1000 салбар','Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'];
-
-  const tbody = document.getElementById('imb-tbody');
+  const tbody = document.getElementById('m-tbody');
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty"><div class="eico">⚖️</div>Тэнцвэргүй бараа олдсонгүй</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="${headCols.length}"><div class="empty"><div class="eico">✅</div>Бүх бараа салбарт байна</div></td></tr>`;
   } else {
     tbody.innerHTML = rows.map(r => {
-      const tb = bkeys.reduce((s,b)=>s+(r[b]||0), 0);
-      const cells = bkeys.map(b => {
-        const qty = r[b]||0;
-        const pct = tb>0 ? qty/tb : 0;
-        const hi  = pct > 0.7;
-        return `<td class="num">
-          <div class="pct-bar">
-            <div class="pct-inner" style="width:${Math.round(pct*72)}px;background:${hi?'var(--red)':'var(--accent)'}"></div>
-            <span class="${hi?'imb-high':'imb-low'}">${qty>0?Math.round(qty).toLocaleString():'-'}</span>
-          </div></td>`;
-      }).join('');
-      const wh = r.агуулах||0;
-      return `<tr>
-        <td class="code-cell">${r.код}</td>
-        <td>${r.нэр}</td>
-        ${cells}
-        <td class="num"><span class="bq bq-wh">${wh>0?Math.round(wh).toLocaleString():'-'}</span></td>
-        <td class="num tot-cell">${Math.round(r.нийт).toLocaleString()}</td>
-      </tr>`;
+      let tds = `<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
+      if (hasCat) tds += `<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
+      tds += `<td class="num"><span class="bq bq-wh">${Math.round(r.агуулах_нийт).toLocaleString()}</span></td>`;
+      if (whView==='expanded') {
+        const det = r.агуулах_дэлгэрэнгүй||{};
+        whKeys.forEach(wk=>{
+          const q=det[wk]||0;
+          tds+=`<td class="num"><span class="bq bq-wh-sm">${q>0?Math.round(q).toLocaleString():'-'}</span></td>`;
+        });
+      }
+      return `<tr>${tds}</tr>`;
     }).join('');
   }
-  renderPg('imb-pg', imbPage, totalPages, p => { imbPage=p; renderImbalance(); });
+
+  // Update print header
+  const now = new Date().toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('ph-branch').textContent = mBranch + ' — үлдэгдэлгүй бараа';
+  document.getElementById('ph-date').textContent   = `${mType==='жижиг'?'Жижиг':'Том'} бараа | ${now} | Нийт: ${items.length} бараа`;
+
+  renderPg('m-pg', mPage, totalPages, p=>{mPage=p;renderMissing();});
 }
 
-// ═══════════════════════════════════════════
-//  Pagination helper
-// ═══════════════════════════════════════════
-function renderPg(id, page, total, cb) {
-  const el = document.getElementById(id);
-  if (total<=1) { el.innerHTML=''; return; }
-  const go = p => `onclick="(${cb})(${p})"`;
-  let h = `<button class="pg" ${page<=1?'disabled':''} ${go(1)}>«</button>`;
-  h    += `<button class="pg" ${page<=1?'disabled':''} ${go(page-1)}>‹</button>`;
-  const s=Math.max(1,page-2), e=Math.min(total,page+2);
-  if (s>1) h += `<span style="color:var(--muted);padding:0 3px">…</span>`;
-  for (let i=s;i<=e;i++) h += `<button class="pg ${i===page?'active':''}" ${go(i)}>${i}</button>`;
-  if (e<total) h += `<span style="color:var(--muted);padding:0 3px">…</span>`;
-  h += `<button class="pg" ${page>=total?'disabled':''} ${go(page+1)}>›</button>`;
-  h += `<button class="pg" ${page>=total?'disabled':''} ${go(total)}>»</button>`;
-  h += `<span class="pg-info">${page} / ${total} хуудас</span>`;
-  el.innerHTML = h;
+// ═══════════════════════════════════════════════════════
+//  IMBALANCE PANEL
+// ═══════════════════════════════════════════════════════
+let iCatDD=null, iSubDD=null, iBranchDD=null;
+
+function initImbalance() {
+  iCatDD    = buildMS('ms-icat','Бүх ангилал', getICats(), sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
+  iSubDD    = buildMS('ms-isub','Бүх дэд ангилал', getISubs(), sel=>{iSubs=sel;iPage=1;renderImbalance();});
+  iBranchDD = buildMS('ms-ibranch','Бүх салбар', BRANCHES, sel=>{iBranches=sel;iPage=1;renderImbalance();});
 }
 
-// ── start ──
+function getICats() { return ((DATA.meta||{})[iType]||{}).categories||[]; }
+function getISubs(cats) {
+  const sm = ((DATA.meta||{})[iType]||{}).subcategories||{};
+  if (!cats||cats.size===0) return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
+  let out=[]; cats.forEach(c=>{if(sm[c])out=out.concat(sm[c]);}); return [...new Set(out)].sort();
+}
+function updateISubOpts() { if(iSubDD)iSubDD.dd._setOptions(getISubs(iCats),true); }
+
+function setImbType(t) {
+  iType=t; iPage=1; iCats=new Set(); iSubs=new Set(); iBranches=new Set();
+  document.getElementById('imb-ji') .classList.toggle('active',t==='жижиг');
+  document.getElementById('imb-tom').classList.toggle('active',t==='том');
+  iCatDD    = buildMS('ms-icat','Бүх ангилал', getICats(), sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
+  iSubDD    = buildMS('ms-isub','Бүх дэд ангилал', getISubs(), sel=>{iSubs=sel;iPage=1;renderImbalance();});
+  iBranchDD = buildMS('ms-ibranch','Бүх салбар', BRANCHES, sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  renderImbalance();
+}
+
+function setIWhView(v) {
+  iWhView=v;
+  document.getElementById('iwh-combined').classList.toggle('active',v==='combined');
+  document.getElementById('iwh-expanded').classList.toggle('active',v==='expanded');
+  renderImbalance();
+}
+function iFilter() { iPage=1; renderImbalance(); }
+
+function getIFiltered() {
+  const q = document.getElementById('i-search').value.toLowerCase();
+  let items = (DATA.imbalance[iType]||[]).slice();
+  if (q) items=items.filter(r=>r.нэр.toLowerCase().includes(q)||r.код.toLowerCase().includes(q));
+  if (iCats.size)     items=items.filter(r=>iCats.has(r.ангилал));
+  if (iSubs.size)     items=items.filter(r=>iSubs.has(r.дэд));
+  if (iBranches.size) {
+    items=items.filter(r=>[...iBranches].some(b=>r[b]&&r[b]>0));
+  }
+  items.sort((a,b)=>{
+    const av=a[iSortCol]||0, bv=b[iSortCol]||0;
+    return typeof av==='string'?iSortDir*av.localeCompare(bv,'mn'):iSortDir*(av-bv);
+  });
+  return items;
+}
+
+function iSort(col){if(iSortCol===col)iSortDir*=-1;else{iSortCol=col;iSortDir=-1;}iPage=1;renderImbalance();}
+
+function renderImbalance() {
+  const items = getIFiltered();
+  const hasCat = getICats().length>0;
+  const meta   = (DATA.meta||{})[iType]||{};
+  const whKeys = meta.warehouses||[];
+
+  document.getElementById('i-stats').innerHTML=`
+    <div class="stat-card"><div class="val" style="color:var(--amber)">${items.length.toLocaleString()}</div><div class="lbl">Тэнцвэргүй бараа</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.8rem;padding-top:5px">70%+ нэг салбарт</div><div class="lbl">Шалгуур</div></div>`;
+
+  // Build thead
+  const activeBranches = iBranches.size>0 ? BRANCHES.filter(b=>iBranches.has(b)) : BRANCHES;
+  let thHTML = `<th onclick="iSort('код')" class="${iSortCol==='код'?'sorted':''}">Код<i class="arr">${iSortCol==='код'?(iSortDir>0?'↑':'↓'):'↕'}</i></th>
+    <th onclick="iSort('нэр')" class="${iSortCol==='нэр'?'sorted':''}">Барааны нэр<i class="arr">${iSortCol==='нэр'?(iSortDir>0?'↑':'↓'):'↕'}</i></th>`;
+  if (hasCat) thHTML+=`<th onclick="iSort('ангилал')" class="${iSortCol==='ангилал'?'sorted':''}">Ангилал<i class="arr">↕</i></th>
+    <th onclick="iSort('дэд')" class="${iSortCol==='дэд'?'sorted':''}">Дэд ангилал<i class="arr">↕</i></th>`;
+  activeBranches.forEach(b=>{
+    thHTML+=`<th class="num ${iSortCol===b?'sorted':''}" onclick="iSort('${b}')" style="font-size:.7rem">${b.replace(' салбар','')}<i class="arr">${iSortCol===b?(iSortDir>0?'↑':'↓'):'↕'}</i></th>`;
+  });
+  if (iWhView==='combined') {
+    thHTML+=`<th class="num ${iSortCol==='агуулах_нийт'?'sorted':''}" onclick="iSort('агуулах_нийт')">Агуулах<i class="arr">↕</i></th>`;
+  } else {
+    whKeys.forEach(wk=>thHTML+=`<th class="num" style="font-size:.7rem">${wk}</th>`);
+  }
+  thHTML+=`<th class="num ${iSortCol==='нийт'?'sorted':''}" onclick="iSort('нийт')">Нийт<i class="arr">${iSortCol==='нийт'?(iSortDir>0?'↑':'↓'):'↕'}</i></th>`;
+  document.getElementById('i-thead-row').innerHTML=thHTML;
+
+  const totalPages=Math.max(1,Math.ceil(items.length/IPAGE));
+  iPage=Math.min(iPage,totalPages);
+  const rows=items.slice((iPage-1)*IPAGE,iPage*IPAGE);
+
+  const tbody=document.getElementById('i-tbody');
+  if(!rows.length){
+    const cols=2+(hasCat?2:0)+activeBranches.length+(iWhView==='expanded'?whKeys.length:1)+1;
+    tbody.innerHTML=`<tr><td colspan="${cols}"><div class="empty"><div class="eico">⚖️</div>Тэнцвэргүй бараа олдсонгүй</div></td></tr>`;
+  } else {
+    tbody.innerHTML=rows.map(r=>{
+      const tb=BRANCHES.reduce((s,b)=>s+(r[b]||0),0);
+      let tds=`<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
+      if(hasCat)tds+=`<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
+      activeBranches.forEach(b=>{
+        const qty=r[b]||0;
+        const pct=tb>0?qty/tb:0;
+        const hi=pct>0.7;
+        tds+=`<td class="num"><div class="pct-bar">
+          <div class="pct-inner" style="width:${Math.round(pct*60)}px;background:${hi?'var(--red)':'var(--accent)'}"></div>
+          <span class="${hi?'imb-high':'imb-low'}">${qty>0?Math.round(qty).toLocaleString():'-'}</span>
+        </div></td>`;
+      });
+      if(iWhView==='combined'){
+        const wh=r.агуулах_нийт||0;
+        tds+=`<td class="num"><span class="bq bq-wh">${wh>0?Math.round(wh).toLocaleString():'-'}</span></td>`;
+      } else {
+        const det=r.агуулах_дэлгэрэнгүй||{};
+        whKeys.forEach(wk=>{
+          const q=det[wk]||0;
+          tds+=`<td class="num"><span class="bq bq-wh-sm">${q>0?Math.round(q).toLocaleString():'-'}</span></td>`;
+        });
+      }
+      tds+=`<td class="num tot-cell">${Math.round(r.нийт).toLocaleString()}</td>`;
+      return `<tr>${tds}</tr>`;
+    }).join('');
+  }
+
+  document.getElementById('ph-imb-date').textContent=
+    `${iType==='жижиг'?'Жижиг':'Том'} бараа | ${new Date().toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'})} | Нийт: ${items.length} бараа`;
+
+  renderPg('i-pg',iPage,totalPages,p=>{iPage=p;renderImbalance();});
+}
+
+// ═══════════════════════════════════════════════════════
+//  PAGINATION
+// ═══════════════════════════════════════════════════════
+function renderPg(id,page,total,cb){
+  const el=document.getElementById(id);
+  if(total<=1){el.innerHTML='';return;}
+  const go=p=>`onclick="(${cb})(${p})"`;
+  let h=`<button class="pg" ${page<=1?'disabled':''} ${go(1)}>«</button>`;
+  h   +=`<button class="pg" ${page<=1?'disabled':''} ${go(page-1)}>‹</button>`;
+  const s=Math.max(1,page-2),e=Math.min(total,page+2);
+  if(s>1)h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;
+  for(let i=s;i<=e;i++)h+=`<button class="pg ${i===page?'active':''}" ${go(i)}>${i}</button>`;
+  if(e<total)h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;
+  h+=`<button class="pg" ${page>=total?'disabled':''} ${go(page+1)}>›</button>`;
+  h+=`<button class="pg" ${page>=total?'disabled':''} ${go(total)}>»</button>`;
+  h+=`<span class="pg-info">${page} / ${total} хуудас</span>`;
+  el.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT — MISSING  (Excel)
+// ═══════════════════════════════════════════════════════
+function exportExcel() {
+  const items = getMFiltered();
+  const now   = new Date();
+  const dateStr = now.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
+  const fileDate= now.toISOString().slice(0,10);
+
+  const meta  = (DATA.meta||{})[mType]||{};
+  const whKeys= meta.warehouses||[];
+  const hasCat= getMCats().length>0;
+
+  // Title rows
+  const title1 = [`${mBranch} — Агуулахад байгаа боловч салбарт байхгүй бараа`];
+  const title2 = [`${mType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа`];
+  const blank  = [];
+
+  // Header row
+  const header = ['Барааны код','Барааны нэр'];
+  if(hasCat)header.push('Ангилал','Дэд ангилал');
+  header.push('Агуулах нийт');
+  if(whView==='expanded')whKeys.forEach(w=>header.push(w));
+
+  const dataRows = items.map(r=>{
+    const row=[r.код,r.нэр];
+    if(hasCat)row.push(r.ангилал||'',r.дэд||'');
+    row.push(r.агуулах_нийт);
+    if(whView==='expanded'){const d=r.агуулах_дэлгэрэнгүй||{};whKeys.forEach(w=>row.push(d[w]||0));}
+    return row;
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([title1,title2,blank,header,...dataRows]);
+
+  // Style widths
+  ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),{wch:14},...(whView==='expanded'?whKeys.map(()=>({wch:14})):[]  )];
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:header.length-1}},{s:{r:1,c:0},e:{r:1,c:header.length-1}}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, mBranch.substring(0,31));
+  XLSX.writeFile(wb, `${mBranch}_${mType}_${fileDate}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT — MISSING (PDF via print)
+// ═══════════════════════════════════════════════════════
+function exportPDF() {
+  document.getElementById('print-title-missing').style.display='block';
+  window.print();
+  setTimeout(()=>document.getElementById('print-title-missing').style.display='',500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT — IMBALANCE (Excel)
+// ═══════════════════════════════════════════════════════
+function exportImbExcel() {
+  const items = getIFiltered();
+  const now   = new Date();
+  const dateStr=now.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
+  const fileDate=now.toISOString().slice(0,10);
+  const hasCat=getICats().length>0;
+  const meta=(DATA.meta||{})[iType]||{};
+  const whKeys=meta.warehouses||[];
+  const activeBranches=iBranches.size>0?BRANCHES.filter(b=>iBranches.has(b)):BRANCHES;
+
+  const title1=[`Тэнцвэргүй үлдэгдэл`];
+  const title2=[`${iType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа`];
+  const header=['Барааны код','Барааны нэр'];
+  if(hasCat)header.push('Ангилал','Дэд ангилал');
+  activeBranches.forEach(b=>header.push(b));
+  if(iWhView==='combined'){header.push('Агуулах нийт');}else{whKeys.forEach(w=>header.push(w));}
+  header.push('Нийт');
+
+  const dataRows=items.map(r=>{
+    const row=[r.код,r.нэр];
+    if(hasCat)row.push(r.ангилал||'',r.дэд||'');
+    activeBranches.forEach(b=>row.push(r[b]||0));
+    if(iWhView==='combined'){row.push(r.агуулах_нийт||0);}
+    else{const d=r.агуулах_дэлгэрэнгүй||{};whKeys.forEach(w=>row.push(d[w]||0));}
+    row.push(r.нийт||0);
+    return row;
+  });
+
+  const ws=XLSX.utils.aoa_to_sheet([title1,title2,[],header,...dataRows]);
+  ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),...activeBranches.map(()=>({wch:12})),{wch:12},{wch:12}];
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:header.length-1}},{s:{r:1,c:0},e:{r:1,c:header.length-1}}];
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Тэнцвэргүй үлдэгдэл');
+  XLSX.writeFile(wb,`Тэнцвэргүй_${iType}_${fileDate}.xlsx`);
+}
+
+function exportImbPDF() {
+  document.getElementById('print-title-imb').style.display='block';
+  window.print();
+  setTimeout(()=>document.getElementById('print-title-imb').style.display='',500);
+}
+
+// ── GO ──
 boot();
 </script>
 </body>

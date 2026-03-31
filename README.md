@@ -1,89 +1,73 @@
-# 📦 Салбар дээр үлдэгдэлгүй бараа — Dashboard
+# 📦 Салбар үлдэгдэл Dashboard
 
-Live dashboard that shows which items are missing from each branch (compared to warehouse stock), and highlights imbalanced stock distribution.
+ERP stock dashboard — shows items missing from branches vs warehouse, plus imbalanced stock distribution across branches.
 
----
+## Features
+- 🔍 **Missing items** per branch (Жижиг / Том бараа)
+- ⚖️ **Imbalanced stock** view comparing all branches
+- 📂 **Category / Subcategory** multi-select filters
+- 🏭 **Warehouse view**: combined total OR expanded per-warehouse breakdown
+- 📥 **Export to Excel** with date & branch title header
+- 🖨️ **Export to PDF** via browser print
+- 🔎 **Multi-select dropdowns** for all filters (like Excel filter)
 
-## 🚀 One-time setup
+## Excel columns expected
+| Column | Required | Notes |
+|--------|----------|-------|
+| Салбар | ✅ | Branch / warehouse name |
+| Барааны код | ✅ | Item code |
+| Барааны нэр | ✅ | Item name |
+| Тоо | ✅ | Quantity |
+| Байршил | ✅ | `Жижиг бараа` or `Том бараа` |
+| Ангилал | ⬜ Optional | Category |
+| Дэд ангилал | ⬜ Optional | Subcategory |
 
-### 1. Create a GitHub repository
+Category/Subcategory columns are optional — if not present the filter just won't appear.
 
-Go to https://github.com/new and create a **public** repository (required for free GitHub Pages).
-
-### 2. Upload this project
+## One-time GitHub setup
 
 ```bash
 git init
 git add .
-git commit -m "initial commit"
+git commit -m "initial"
 git branch -M main
-git remote add origin https://github.com/bayarchiglel/salbar.git
+git remote add origin https://github.com/YOUR/REPO.git
 git push -u origin main
 ```
 
-### 3. Enable GitHub Pages
+Then: **Settings → Pages → Source: main / (root) → Save**
 
-1. Go to your repo → **Settings** → **Pages**
-2. Under *Source*, choose **Deploy from a branch**
-3. Branch: `main`, folder: `/ (root)`
-4. Click **Save**
+Live at: `https://YOUR.github.io/REPO/`
 
-Your dashboard will be live at:
-`https://YOUR_USERNAME.github.io/YOUR_REPO/`
+## Daily update
 
----
-
-## 🔄 Daily update workflow
-
-Every time you get a new Excel export from your ERP:
-
-1. **Replace** `data/нийт.xlsx` with the new file (keep the same filename)
-2. **Commit & push**:
+Replace `data/нийт.xlsx` then:
 
 ```bash
-# drag the new file into the data/ folder, then:
 git add data/нийт.xlsx
-git commit -m "update stock data $(date +%Y-%m-%d)"
+git commit -m "stock update $(date +%Y-%m-%d)"
 git push
 ```
 
-GitHub Actions will automatically:
-- Run `scripts/build_data.py`
-- Rebuild `data/stock.json`
-- Commit the result back
-- The live dashboard refreshes on next page load ✅
+GitHub Actions rebuilds `data/stock.json` automatically (~1 min).
 
-You can also trigger a rebuild manually:  
-Repo → **Actions** → **Build dashboard data** → **Run workflow**
-
----
-
-## 📁 Project structure
-
-```
-├── index.html              ← Dashboard (loads data/stock.json)
-├── data/
-│   ├── нийт.xlsx           ← ← ← Replace this file to update
-│   └── stock.json          ← Auto-generated, do not edit manually
-├── scripts/
-│   └── build_data.py       ← Converts Excel → stock.json
-└── .github/
-    └── workflows/
-        └── build.yml       ← GitHub Actions workflow
-```
-
----
-
-## 🛠 Run locally
+## Run locally
 
 ```bash
 pip install pandas openpyxl
 python scripts/build_data.py
-
-# Then open index.html with a local server (required — file:// won't work for fetch())
 python -m http.server 8000
-# → http://localhost:8000
+# open http://localhost:8000
 ```
 
-> **Why a local server?** The dashboard fetches `data/stock.json` via HTTP.  
-> Opening `index.html` directly as a file (`file://`) blocks that fetch in most browsers.
+## Project structure
+
+```
+├── index.html                  ← Dashboard
+├── data/
+│   ├── нийт.xlsx               ← ← Replace to update
+│   └── stock.json              ← Auto-generated
+├── scripts/
+│   └── build_data.py           ← Excel → JSON converter
+└── .github/workflows/build.yml ← Auto-rebuild on push
+```
