@@ -176,11 +176,12 @@ tbody tr:hover{background:var(--surface2)}
 .bq{display:inline-block;padding:2px 8px;border-radius:12px;font-weight:700;font-size:.78rem;white-space:nowrap}
 .bq-wh{background:rgba(34,197,94,.14);color:var(--green)}
 .bq-wh-sm{background:rgba(6,182,212,.12);color:var(--cyan);font-size:.72rem;padding:1px 6px;margin:1px}
-.imb-high{background:rgba(239,68,68,.13);color:var(--red);font-weight:700;border-radius:6px;padding:2px 7px}
+.imb-high{background:rgba(239,68,68,.18);color:var(--red);font-weight:800;border-radius:6px;
+  padding:3px 9px;display:inline-block}
+.imb-dom{color:var(--red);font-weight:800}
 .imb-low{color:var(--muted)}
-.pct-bar{display:flex;align-items:center;gap:6px}
-.pct-inner{height:5px;border-radius:3px;min-width:2px;flex-shrink:0}
 .tot-cell{font-weight:800}
+.branch-nийт{font-size:.72rem;color:var(--muted);margin-top:1px}
 .wh-detail{font-size:.75rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
 
 /* ── Pagination ── */
@@ -356,13 +357,6 @@ tbody tr:hover{background:var(--surface2)}
       <div class="toolbar-group">
         <label>Салбар</label>
         <div id="ms-ibranch" class="ms-wrap"></div>
-      </div>
-      <div class="toolbar-group">
-        <label>Агуулах харах</label>
-        <div class="wh-toggle">
-          <button id="iwh-combined" class="active" onclick="setIWhView('combined')">Нийт</button>
-          <button id="iwh-expanded" onclick="setIWhView('expanded')">Дэлгэрэнгүй</button>
-        </div>
       </div>
       <div class="export-btns">
         <button class="exp-btn" onclick="exportImbExcel()">📥 Excel татах</button>
@@ -691,12 +685,7 @@ function setImbType(t) {
   renderImbalance();
 }
 
-function setIWhView(v) {
-  iWhView=v;
-  document.getElementById('iwh-combined').classList.toggle('active',v==='combined');
-  document.getElementById('iwh-expanded').classList.toggle('active',v==='expanded');
-  renderImbalance();
-}
+// setIWhView removed — imbalance panel no longer shows warehouse columns
 function iFilter() { iPage=1; renderImbalance(); }
 
 function getIFiltered() {
@@ -720,28 +709,33 @@ function iSort(col){if(iSortCol===col)iSortDir*=-1;else{iSortCol=col;iSortDir=-1
 function renderImbalance() {
   const items = getIFiltered();
   const hasCat = getICats().length>0;
-  const meta   = (DATA.meta||{})[iType]||{};
-  const whKeys = meta.warehouses||[];
+
+  // Stats — show dominant branch breakdown
+  const domCount = {};
+  BRANCHES.forEach(b=>domCount[b]=0);
+  items.forEach(r=>{ if(r.давамгай) domCount[r.давамгай]=(domCount[r.давамгай]||0)+1; });
+  const topDom = Object.entries(domCount).sort((a,b)=>b[1]-a[1]).filter(e=>e[1]>0);
 
   document.getElementById('i-stats').innerHTML=`
     <div class="stat-card"><div class="val" style="color:var(--amber)">${items.length.toLocaleString()}</div><div class="lbl">Тэнцвэргүй бараа</div></div>
-    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.8rem;padding-top:5px">70%+ нэг салбарт</div><div class="lbl">Шалгуур</div></div>`;
+    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.75rem;padding-top:4px;line-height:1.4">
+      70%+ салбарт · агуулах ≤10%</div><div class="lbl">Шалгуур</div></div>
+    ${topDom.slice(0,3).map(([b,n])=>`<div class="stat-card"><div class="val" style="color:var(--red);font-size:1.1rem">${n}</div><div class="lbl">${b.replace(' салбар','')} давамгай</div></div>`).join('')}`;
 
-  // Build thead
+  // Build thead — NO warehouse columns
   const activeBranches = iBranches.size>0 ? BRANCHES.filter(b=>iBranches.has(b)) : BRANCHES;
-  let thHTML = `<th onclick="iSort('код')" class="${iSortCol==='код'?'sorted':''}">Код<i class="arr">${iSortCol==='код'?(iSortDir>0?'↑':'↓'):'↕'}</i></th>
-    <th onclick="iSort('нэр')" class="${iSortCol==='нэр'?'sorted':''}">Барааны нэр<i class="arr">${iSortCol==='нэр'?(iSortDir>0?'↑':'↓'):'↕'}</i></th>`;
-  if (hasCat) thHTML+=`<th onclick="iSort('ангилал')" class="${iSortCol==='ангилал'?'sorted':''}">Ангилал<i class="arr">↕</i></th>
-    <th onclick="iSort('дэд')" class="${iSortCol==='дэд'?'sorted':''}">Дэд ангилал<i class="arr">↕</i></th>`;
+  const th = (col,lbl,num) => {
+    const sorted = iSortCol===col;
+    const arr = sorted?(iSortDir>0?'↑':'↓'):'↕';
+    return `<th class="${sorted?'sorted':''} ${num?'num':''}" onclick="iSort('${col}')">${lbl}<i class="arr">${arr}</i></th>`;
+  };
+  let thHTML = th('код','Код') + th('нэр','Барааны нэр');
+  if (hasCat) thHTML += th('ангилал','Ангилал') + th('дэд','Дэд ангилал');
   activeBranches.forEach(b=>{
-    thHTML+=`<th class="num ${iSortCol===b?'sorted':''}" onclick="iSort('${b}')" style="font-size:.7rem">${b.replace(' салбар','')}<i class="arr">${iSortCol===b?(iSortDir>0?'↑':'↓'):'↕'}</i></th>`;
+    const short = b.replace(' салбар','').replace('Алтан-Орд','А-Орд').replace('Чулуун овоо','Чулуун');
+    thHTML += th(b, short, true);
   });
-  if (iWhView==='combined') {
-    thHTML+=`<th class="num ${iSortCol==='агуулах_нийт'?'sorted':''}" onclick="iSort('агуулах_нийт')">Агуулах<i class="arr">↕</i></th>`;
-  } else {
-    whKeys.forEach(wk=>thHTML+=`<th class="num" style="font-size:.7rem">${wk}</th>`);
-  }
-  thHTML+=`<th class="num ${iSortCol==='нийт'?'sorted':''}" onclick="iSort('нийт')">Нийт<i class="arr">${iSortCol==='нийт'?(iSortDir>0?'↑':'↓'):'↕'}</i></th>`;
+  thHTML += th('салбар_нийт','Салбар нийт',true);
   document.getElementById('i-thead-row').innerHTML=thHTML;
 
   const totalPages=Math.max(1,Math.ceil(items.length/IPAGE));
@@ -750,33 +744,24 @@ function renderImbalance() {
 
   const tbody=document.getElementById('i-tbody');
   if(!rows.length){
-    const cols=2+(hasCat?2:0)+activeBranches.length+(iWhView==='expanded'?whKeys.length:1)+1;
+    const cols=2+(hasCat?2:0)+activeBranches.length+1;
     tbody.innerHTML=`<tr><td colspan="${cols}"><div class="empty"><div class="eico">⚖️</div>Тэнцвэргүй бараа олдсонгүй</div></td></tr>`;
   } else {
     tbody.innerHTML=rows.map(r=>{
-      const tb=BRANCHES.reduce((s,b)=>s+(r[b]||0),0);
+      const dominant = r.давамгай || '';
       let tds=`<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
       if(hasCat)tds+=`<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
       activeBranches.forEach(b=>{
         const qty=r[b]||0;
-        const pct=tb>0?qty/tb:0;
-        const hi=pct>0.7;
-        tds+=`<td class="num"><div class="pct-bar">
-          <div class="pct-inner" style="width:${Math.round(pct*60)}px;background:${hi?'var(--red)':'var(--accent)'}"></div>
-          <span class="${hi?'imb-high':'imb-low'}">${qty>0?Math.round(qty).toLocaleString():'-'}</span>
-        </div></td>`;
+        const isDom = b===dominant && qty>0;
+        if(isDom){
+          tds+=`<td class="num"><span class="imb-high">${Math.round(qty).toLocaleString()}</span></td>`;
+        } else {
+          tds+=`<td class="num ${qty===0?'imb-low':''}">${qty>0?Math.round(qty).toLocaleString():'-'}</td>`;
+        }
       });
-      if(iWhView==='combined'){
-        const wh=r.агуулах_нийт||0;
-        tds+=`<td class="num"><span class="bq bq-wh">${wh>0?Math.round(wh).toLocaleString():'-'}</span></td>`;
-      } else {
-        const det=r.агуулах_дэлгэрэнгүй||{};
-        whKeys.forEach(wk=>{
-          const q=det[wk]||0;
-          tds+=`<td class="num"><span class="bq bq-wh-sm">${q>0?Math.round(q).toLocaleString():'-'}</span></td>`;
-        });
-      }
-      tds+=`<td class="num tot-cell">${Math.round(r.нийт).toLocaleString()}</td>`;
+      const tb = r.салбар_нийт || BRANCHES.reduce((s,b)=>s+(r[b]||0),0);
+      tds+=`<td class="num tot-cell">${Math.round(tb).toLocaleString()}</td>`;
       return `<tr>${tds}</tr>`;
     }).join('');
   }
@@ -867,30 +852,26 @@ function exportImbExcel() {
   const dateStr=now.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
   const fileDate=now.toISOString().slice(0,10);
   const hasCat=getICats().length>0;
-  const meta=(DATA.meta||{})[iType]||{};
-  const whKeys=meta.warehouses||[];
   const activeBranches=iBranches.size>0?BRANCHES.filter(b=>iBranches.has(b)):BRANCHES;
 
-  const title1=[`Тэнцвэргүй үлдэгдэл`];
-  const title2=[`${iType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа`];
+  const title1=[`Тэнцвэргүй үлдэгдэл — салбар хоорондын тэнцвэргүй хуваарилалт`];
+  const title2=[`${iType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа | Шалгуур: нэг салбарт 70%+ · агуулах ≤10%`];
   const header=['Барааны код','Барааны нэр'];
   if(hasCat)header.push('Ангилал','Дэд ангилал');
   activeBranches.forEach(b=>header.push(b));
-  if(iWhView==='combined'){header.push('Агуулах нийт');}else{whKeys.forEach(w=>header.push(w));}
-  header.push('Нийт');
+  header.push('Салбар нийт','Давамгай салбар');
 
   const dataRows=items.map(r=>{
     const row=[r.код,r.нэр];
     if(hasCat)row.push(r.ангилал||'',r.дэд||'');
     activeBranches.forEach(b=>row.push(r[b]||0));
-    if(iWhView==='combined'){row.push(r.агуулах_нийт||0);}
-    else{const d=r.агуулах_дэлгэрэнгүй||{};whKeys.forEach(w=>row.push(d[w]||0));}
-    row.push(r.нийт||0);
+    const tb=r.салбар_нийт||activeBranches.reduce((s,b)=>s+(r[b]||0),0);
+    row.push(tb, r.давамгай||'');
     return row;
   });
 
   const ws=XLSX.utils.aoa_to_sheet([title1,title2,[],header,...dataRows]);
-  ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),...activeBranches.map(()=>({wch:12})),{wch:12},{wch:12}];
+  ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),...activeBranches.map(()=>({wch:12})),{wch:14},{wch:20}];
   ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:header.length-1}},{s:{r:1,c:0},e:{r:1,c:header.length-1}}];
 
   const wb=XLSX.utils.book_new();
@@ -908,6 +889,7 @@ function exportImbPDF() {
 //  AUTH  —  SHA-256 via Web Crypto API (no library needed)
 // ═══════════════════════════════════════════════════════
 const SESSION_KEY = 'erp_auth_v1';
+const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours
 let AUTH_HASH = null;   // loaded from auth.json
 
 async function sha256(str) {
@@ -916,7 +898,13 @@ async function sha256(str) {
 }
 
 function isUnlocked() {
-  return sessionStorage.getItem(SESSION_KEY) === 'ok';
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const { token, ts } = JSON.parse(raw);
+    if (Date.now() - ts > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return false; }
+    return token === AUTH_HASH;
+  } catch(e) { return false; }
 }
 
 function showLogin() {
@@ -931,7 +919,7 @@ function showDashboard() {
 }
 
 function lockSession() {
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
   document.getElementById('pw-input').value = '';
   document.getElementById('login-err').textContent = '';
   showLogin();
@@ -957,7 +945,7 @@ async function doLogin() {
 
   const hash = await sha256(pw);
   if (hash === AUTH_HASH) {
-    sessionStorage.setItem(SESSION_KEY, 'ok');
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ token: AUTH_HASH, ts: Date.now() }));
     err.textContent = '';
     inp.value = '';
     inp.type  = 'password';
