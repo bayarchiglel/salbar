@@ -188,21 +188,30 @@ def build_imbalance(df):
             if total == 0:
                 continue
 
+            # Rule 1: warehouse must be <=10% of total stock
+            # (if warehouse is large, the missing-items panel handles supply — skip here)
+            if total > 0 and wh_total / total > 0.10:
+                continue
+
+            # Rule 2: one branch holds >=70% of branch-only stock
             is_imbalanced = False
             if total_branch > 1:
                 for qty in branch_stocks.values():
-                    if qty / total_branch > 0.70:
+                    if qty / total_branch >= 0.70:
                         is_imbalanced = True
                         break
 
             if is_imbalanced:
+                dominant = max(branch_stocks, key=lambda b: branch_stocks[b])
                 rows.append({
                     "код": code, "нэр": name,
                     "ангилал": ангилал, "дэд": дэд,
                     **{b: branch_stocks[b] for b in BRANCH_MAP.keys()},
                     "агуулах_нийт": wh_total,
                     "агуулах_дэлгэрэнгүй": wh_breakdown,
+                    "салбар_нийт": total_branch,
                     "нийт": total,
+                    "давамгай": dominant,
                 })
 
         result[type_key] = rows
