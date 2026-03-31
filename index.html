@@ -24,6 +24,40 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── Login screen ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;z-index:998;animation:fadeIn .35s ease}
+#login-screen.gone{display:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:44px 40px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.55);text-align:center}
+.login-logo{font-size:3rem;margin-bottom:8px}
+.login-box h2{font-size:1.25rem;font-weight:700;margin-bottom:6px}
+.login-box p{font-size:.83rem;color:var(--muted);margin-bottom:32px;line-height:1.55}
+.login-field{position:relative;margin-bottom:14px;text-align:left}
+.login-field label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.login-field input{width:100%;padding:11px 44px 11px 14px;background:var(--surface2);
+  border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);
+  font-size:.95rem;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--accent)}
+.login-field input.shake{border-color:var(--red);animation:shake .32s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.pw-eye{position:absolute;right:13px;bottom:11px;cursor:pointer;color:var(--muted);
+  font-size:1rem;user-select:none;transition:color .15s;line-height:1}
+.pw-eye:hover{color:var(--text)}
+.login-btn{width:100%;padding:12px;background:var(--accent);border:none;border-radius:var(--radius);
+  color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .18s;margin-top:4px}
+.login-btn:hover{background:#3a58e0;transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,110,247,.35)}
+.login-btn:active{transform:none}
+.login-btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+.login-err{color:var(--red);font-size:.81rem;margin-top:11px;min-height:18px;font-weight:600}
+.login-footer{margin-top:26px;padding-top:20px;border-top:1px solid var(--border);
+  font-size:.73rem;color:var(--muted);line-height:1.6}
+#lock-btn{padding:4px 10px;background:transparent;border:1px solid var(--border);
+  border-radius:7px;color:var(--muted);cursor:pointer;font-size:.73rem;transition:all .15s}
+#lock-btn:hover{border-color:var(--red);color:var(--red)}
+
 /* ── Header ── */
 header{background:linear-gradient(135deg,#1a1d27,#222538);border-bottom:1px solid var(--border);
   padding:16px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
@@ -187,17 +221,43 @@ tbody tr:hover{background:var(--surface2)}
   .search-wrap input{width:100%}
   .toolbar{flex-direction:column}
 }
+#main-content{display:block}
+#main-content.hidden{display:none}
 </style>
 </head>
 <body>
 
 <div id="loader"><div class="spinner"></div><p style="color:var(--muted)">Өгөгдөл ачааллаж байна…</p></div>
 
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">📦</div>
+    <h2>Салбар үлдэгдэл</h2>
+    <p>Системд нэвтрэхийн тулд<br>нууц үгээ оруулна уу</p>
+    <div class="login-field">
+      <label>Нууц үг</label>
+      <input type="password" id="pw-input" placeholder="Нууц үг оруулах…"
+             onkeydown="if(event.key==='Enter')doLogin()"
+             oninput="document.getElementById('pw-input').classList.remove('shake');document.getElementById('login-err').textContent=''">
+      <span class="pw-eye" id="pw-eye" onclick="toggleEye()">👁️</span>
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Нэвтрэх</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-footer">
+      Зөвхөн эрх бүхий хэрэглэгчдэд зориулагдсан.<br>
+      Асуудал гарвал системийн админтай холбогдоно уу.
+    </div>
+  </div>
+</div>
+
+<div id="main-content" class="hidden">
 <header>
   <div style="font-size:1.3rem">📦</div>
   <h1>Салбар дээр үлдэгдэлгүй бараа</h1>
   <span class="hbadge">ERP</span>
   <span id="updated-at"></span>
+  <button id="lock-btn" onclick="lockSession()" title="Гарах">🔒 Гарах</button>
 </header>
 
 <div class="main">
@@ -322,6 +382,7 @@ tbody tr:hover{background:var(--surface2)}
   </div>
 
 </div><!-- .main -->
+</div><!-- #main-content -->
 
 <script>
 // ═══════════════════════════════════════════════════════
@@ -843,7 +904,122 @@ function exportImbPDF() {
   setTimeout(()=>document.getElementById('print-title-imb').style.display='',500);
 }
 
-// ── GO ──
+// ═══════════════════════════════════════════════════════
+//  AUTH  —  SHA-256 via Web Crypto API (no library needed)
+// ═══════════════════════════════════════════════════════
+const SESSION_KEY = 'erp_auth_v1';
+let AUTH_HASH = null;   // loaded from auth.json
+
+async function sha256(str) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function isUnlocked() {
+  return sessionStorage.getItem(SESSION_KEY) === 'ok';
+}
+
+function showLogin() {
+  document.getElementById('login-screen').classList.remove('gone');
+  document.getElementById('main-content').classList.add('hidden');
+  setTimeout(()=>document.getElementById('pw-input').focus(), 80);
+}
+
+function showDashboard() {
+  document.getElementById('login-screen').classList.add('gone');
+  document.getElementById('main-content').classList.remove('hidden');
+}
+
+function lockSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('pw-input').value = '';
+  document.getElementById('login-err').textContent = '';
+  showLogin();
+}
+
+function toggleEye() {
+  const inp = document.getElementById('pw-input');
+  const eye = document.getElementById('pw-eye');
+  if (inp.type === 'password') { inp.type='text';  eye.textContent='🙈'; }
+  else                         { inp.type='password'; eye.textContent='👁️'; }
+  inp.focus();
+}
+
+async function doLogin() {
+  const inp = document.getElementById('pw-input');
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-err');
+  const pw  = inp.value;
+  if (!pw) { err.textContent='Нууц үг оруулна уу'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Шалгаж байна…';
+
+  const hash = await sha256(pw);
+  if (hash === AUTH_HASH) {
+    sessionStorage.setItem(SESSION_KEY, 'ok');
+    err.textContent = '';
+    inp.value = '';
+    inp.type  = 'password';
+    document.getElementById('pw-eye').textContent = '👁️';
+    showDashboard();
+  } else {
+    err.textContent = '❌ Нууц үг буруу байна';
+    inp.classList.add('shake');
+    inp.value = '';
+    inp.focus();
+    setTimeout(()=>inp.classList.remove('shake'), 400);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Нэвтрэх';
+}
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+async function boot() {
+  // 1. Load auth config
+  try {
+    const ar = await fetch('data/auth.json?v=' + Date.now());
+    const ac = await ar.json();
+    AUTH_HASH = ac.password_hash;
+  } catch(e) {
+    console.warn('auth.json not found — running without password protection');
+    AUTH_HASH = null;
+  }
+
+  // 2. Load stock data
+  try {
+    const res = await fetch('data/stock.json?v=' + Date.now());
+    if (!res.ok) throw new Error(res.statusText);
+    DATA = await res.json();
+  } catch(e) {
+    document.getElementById('loader').innerHTML =
+      `<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>${e.message}</p>`;
+    return;
+  }
+
+  if (DATA.generated)
+    document.getElementById('updated-at').textContent = 'Шинэчлэгдсэн: ' + DATA.generated;
+
+  document.getElementById('loader').classList.add('gone');
+
+  // 3. Auth gate
+  if (AUTH_HASH && !isUnlocked()) {
+    showLogin();
+  } else {
+    showDashboard();
+  }
+}
+
+// Init dashboard only once after successful login
+let _inited = false;
+function showDashboard() {
+  document.getElementById('login-screen').classList.add('gone');
+  document.getElementById('main-content').classList.remove('hidden');
+  if (!_inited) { _inited=true; initMissing(); initImbalance(); }
+}
+
 boot();
 </script>
 </body>
