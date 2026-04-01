@@ -72,6 +72,12 @@ def load_df():
     df["Барааны код"]  = df["Барааны код"].fillna("").astype(str).str.strip()
     df["Барааны нэр"]  = df["Барааны нэр"].fillna("Тодорхойгүй").astype(str).str.strip()
     df["Салбар"]       = df["Салбар"].astype(str).str.strip()
+    # Normalize Байршил to standard values regardless of caps
+    байршил_map = {
+        "том бараа": "Том бараа", "ТОМ БАРАА": "Том бараа", "Том Бараа": "Том бараа",
+        "жижиг бараа": "Жижиг бараа", "ЖИЖИГ БАРАА": "Жижиг бараа", "Жижиг Бараа": "Жижиг бараа",
+    }
+    df["Байршил"] = df["Байршил"].fillna("").astype(str).str.strip().replace(байршил_map)
     # Optional columns — gracefully default to empty string
     # Ангилал — normalize to title-case to merge duplicates like 'бусад'/'Бусад'
     if "Ангилал" not in df.columns:
