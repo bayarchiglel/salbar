@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Convert нийт.xlsx → data/stock.json
-Supports columns: Салбар, Барааны код, Барааны нэр, Тоо, Байршил, Ангилал, Дэд ангилал
+Columns: Салбар, Барааны код, Барааны нэр, Тоо, Байршил, Ангилал, дэд ангилал
+Optional: Гарал үүсэл (origin)
 Run: python scripts/build_data.py
 """
 
@@ -16,266 +17,222 @@ OUT   = ROOT / "data" / "stock.json"
 
 BRANCH_MAP = {
     "Очир салбар": {
-        "Жижиг бараа": ["Очир хотхон", "Очир том сэлбэг"],
-        "Том бараа":   ["Очир хотхон том"],
+        "жижиг":  ["Очир хотхон", "Очир том сэлбэг"],
+        "том":    ["Очир хотхон том"],
+        "сэлбэг": ["Очир хотхон", "Очир том сэлбэг", "Очир хотхон том"],
     },
     "25 салбар": {
-        "Жижиг бараа": ["25 салбар", "25 том сэлбэг"],
-        "Том бараа":   ["25 салбар том"],
+        "жижиг":  ["25 салбар", "25 том сэлбэг"],
+        "том":    ["25 салбар том"],
+        "сэлбэг": ["25 салбар", "25 том сэлбэг", "25 салбар том"],
     },
     "Д1000 салбар": {
-        "Жижиг бараа": ["Дэнжийн1000 салбар", "Дэнж1000 том сэлбэг"],
-        "Том бараа":   ["Дэнжийн 1000 том", "Дэнж 1000 том хуучин"],
+        "жижиг":  ["Дэнжийн1000 салбар", "Дэнж1000 том сэлбэг"],
+        "том":    ["Дэнжийн 1000 том", "Дэнж 1000 том хуучин"],
+        "сэлбэг": ["Дэнжийн1000 салбар", "Дэнж1000 том сэлбэг", "Дэнжийн 1000 том"],
     },
     "Мишээл салбар": {
-        "Жижиг бараа": ["Мишээл салбар"],
-        "Том бараа":   ["Мишээл том"],
+        "жижиг":  ["Мишээл салбар"],
+        "том":    ["Мишээл том"],
+        "сэлбэг": ["Мишээл салбар", "Мишээл том"],
     },
     "Алтан-Орд салбар": {
-        "Жижиг бараа": ["Алтан орд"],
-        "Том бараа":   ["Altanord tom"],
+        "жижиг":  ["Алтан орд"],
+        "том":    ["Altanord tom"],
+        "сэлбэг": ["Алтан орд"],
     },
     "Чулуун овоо салбар": {
-        "Жижиг бараа": ["Салбар нарантуул"],
-        "Том бараа":   ["Чулуун овоо том"],
+        "жижиг":  ["Салбар нарантуул"],
+        "том":    ["Чулуун овоо том"],
+        "сэлбэг": ["Салбар нарантуул", "Чулуун овоо том"],
     },
 }
 
-# Each warehouse gets its own slot so frontend can show combined or expanded
 WAREHOUSE_NAMES = {
-    "Жижиг бараа": ["Агуулах", "Агуулах - 2", "Агуулах жижиг 4", "Агуулах-3"],
-    "Том бараа":   ["агуулах tom 1", "Агуулах том  2", "Нөөц агуулах"],
+    "жижиг":  ["Агуулах", "Агуулах - 2", "Агуулах жижиг 4", "Агуулах-3"],
+    "том":    ["агуулах tom 1", "Агуулах том  2", "Нөөц агуулах"],
+    "сэлбэг": ["Агуулах", "Агуулах - 2", "Агуулах-3", "агуулах tom 1", "Нөөц агуулах"],
 }
 
-# Display labels for warehouses
 WAREHOUSE_LABELS = {
-    "Жижиг бараа": {
-        "Агуулах":        "Агуулах 1",
-        "Агуулах - 2":    "Агуулах 2",
-        "Агуулах жижиг 4":"Агуулах 4",
-        "Агуулах-3":      "Агуулах 3",
+    "жижиг": {
+        "Агуулах": "Агуулах 1", "Агуулах - 2": "Агуулах 2",
+        "Агуулах жижиг 4": "Агуулах 4", "Агуулах-3": "Агуулах 3",
     },
-    "Том бараа": {
-        "агуулах tom 1":  "Агуулах Том 1",
-        "Агуулах том  2": "Агуулах Том 2",
-        "Нөөц агуулах":   "Нөөц агуулах",
+    "том": {
+        "агуулах tom 1": "Агуулах Том 1", "Агуулах том  2": "Агуулах Том 2",
+        "Нөөц агуулах": "Нөөц агуулах",
+    },
+    "сэлбэг": {
+        "Агуулах": "Агуулах 1", "Агуулах - 2": "Агуулах 2",
+        "Агуулах-3": "Агуулах 3", "агуулах tom 1": "Агуулах Том 1",
+        "Нөөц агуулах": "Нөөц агуулах",
     },
 }
 
-TYPE_KEY = {"Жижиг бараа": "жижиг", "Том бараа": "том"}
+EXCLUDE_SALBAR = {"бичиг хэрэг", "Мабуд бэлэн бүтээгдэхүүн"}
+ALL_TYPES = ["жижиг", "том", "сэлбэг"]
+# Map Байршил to type key — case-insensitive
+EXCLUDE_БАЙРШИЛ = {"хангамж", "кодгүй"}
+def байршил_to_type(v):
+    v = str(v).strip().lower()
+    if v in EXCLUDE_БАЙРШИЛ: return ""
+    if "жижиг" in v: return "жижиг"
+    if "сэлбэг" in v: return "сэлбэг"
+    if "том" in v:   return "том"
+    return ""
+
 
 
 def load_df():
     print(f"Reading {EXCEL} …")
-    df = pd.read_excel(EXCEL)
-    df["Тоо"]         = pd.to_numeric(df["Тоо"], errors="coerce").fillna(0)
-    df["Барааны код"]  = df["Барааны код"].fillna("").astype(str).str.strip()
-    df["Барааны нэр"]  = df["Барааны нэр"].fillna("Тодорхойгүй").astype(str).str.strip()
-    df["Салбар"]       = df["Салбар"].astype(str).str.strip()
-    # Normalize Байршил to standard values regardless of caps
-    байршил_map = {
-        "том бараа": "Том бараа", "ТОМ БАРАА": "Том бараа", "Том Бараа": "Том бараа",
-        "жижиг бараа": "Жижиг бараа", "ЖИЖИГ БАРАА": "Жижиг бараа", "Жижиг Бараа": "Жижиг бараа",
-    }
-    df["Байршил"] = df["Байршил"].fillna("").astype(str).str.strip().replace(байршил_map)
-    # Optional columns — gracefully default to empty string
-    # Ангилал — normalize to title-case to merge duplicates like 'бусад'/'Бусад'
-    if "Ангилал" not in df.columns:
-        df["Ангилал"] = ""
-    df["Ангилал"] = (df["Ангилал"].fillna("").astype(str).str.strip()
-                     .str.title()
-                     .replace({"Ирэхгүй": "", "0": ""}))
+    # Read Sheet1 explicitly — file may have multiple sheets
+    xl = pd.ExcelFile(EXCEL)
+    sheet = "Sheet1" if "Sheet1" in xl.sheet_names else xl.sheet_names[-1]
+    df = pd.read_excel(EXCEL, sheet_name=sheet)
+    df["Тоо"]        = pd.to_numeric(df["Тоо"], errors="coerce").fillna(0)
+    df["Барааны код"] = df["Барааны код"].fillna("").astype(str).str.strip()
+    df["Барааны нэр"] = df["Барааны нэр"].fillna("Тодорхойгүй").astype(str).str.strip()
+    df["Салбар"]      = df["Салбар"].astype(str).str.strip()
+    df["Байршил"]     = df["Байршил"].fillna("").astype(str).str.strip()
 
-    # Subcategory column may be "Дэд ангилал" or "дэд ангилал"
+    cat_col = next((c for c in df.columns if c.lower() == "ангилал"), None)
     sub_col = next((c for c in df.columns if c.lower() == "дэд ангилал"), None)
-    if sub_col:
-        df["Дэд ангилал"] = (df[sub_col].fillna("").astype(str).str.strip()
-                              .replace({"0": "", "nan": ""}))
-        if sub_col != "Дэд ангилал":
-            df = df.drop(columns=[sub_col])
-    else:
-        df["Дэд ангилал"] = ""
+    ori_col = next((c for c in df.columns if "гарал" in c.lower() or "origin" in c.lower()), None)
+    # Fix: also accept #N/A strings in origin
+
+    JUNK = {"0", "nan", "", "Nan", "Ирэхгүй", "ирэхгүй"}
+    df["Ангилал"]     = (df[cat_col].fillna("").astype(str).str.strip().str.title()
+                         .apply(lambda x: "" if x in JUNK else x)) if cat_col else ""
+    df["Дэд ангилал"] = (df[sub_col].fillna("").astype(str).str.strip().str.title()
+                         .apply(lambda x: "" if x in JUNK | {"Сэлбэг"} else x)) if sub_col else ""
+    df["Гарал"]       = (df[ori_col].fillna("").astype(str).str.strip()
+                         .apply(lambda x: "" if x.lower() in {"#n/a","nan","","#н/а"} else x)) if ori_col else ""
+
+    df = df[~df["Салбар"].isin(EXCLUDE_SALBAR)]
+    df["_type"] = df["Байршил"].apply(байршил_to_type)
+    # Сэлбэг: also detect by Ангилал in case Байршил is жижиг/том
+    df.loc[(df["_type"].isin(["жижиг","том"])) & (df["Ангилал"].str.upper() == "СЭЛБЭГ"), "_type"] = "сэлбэг"
+    df = df[df["_type"].isin(ALL_TYPES) & (df["Барааны код"] != "")]
     return df
 
 
 def build_missing(df):
     result = {}
-    for item_type_mn, type_key in TYPE_KEY.items():
-        result[type_key] = {}
-        type_df   = df[df["Байршил"] == item_type_mn]
-        wh_names  = WAREHOUSE_NAMES[item_type_mn]
-        wh_labels = WAREHOUSE_LABELS[item_type_mn]
-        wh_df     = type_df[type_df["Салбар"].isin(wh_names)]
+    for tk in ALL_TYPES:
+        result[tk] = {}
+        tdf = df[df["_type"] == tk]
+        wh_df = tdf[tdf["Салбар"].isin(WAREHOUSE_NAMES[tk])]
+        wh_pivot = wh_df.groupby(
+            ["Барааны код","Барааны нэр","Ангилал","Дэд ангилал","Гарал","Салбар"]
+        )["Тоо"].sum().reset_index()
 
-        # Per-warehouse quantities for every item
-        wh_pivot = (
-            wh_df.groupby(["Барааны код", "Барааны нэр", "Ангилал", "Дэд ангилал", "Салбар"])["Тоо"]
-            .sum()
-            .reset_index()
-        )
-
-        # Build item master: combined + per-warehouse breakdown
         item_wh = {}
         for _, row in wh_pivot.iterrows():
             code  = row["Барааны код"]
-            label = wh_labels.get(row["Салбар"], row["Салбар"])
+            label = WAREHOUSE_LABELS[tk].get(row["Салбар"], row["Салбар"])
             if code not in item_wh:
                 item_wh[code] = {
-                    "код": code,
-                    "нэр": row["Барааны нэр"],
-                    "ангилал": row["Ангилал"],
-                    "дэд": row["Дэд ангилал"],
-                    "агуулах_нийт": 0,
-                    "агуулах_дэлгэрэнгүй": {},
+                    "код": code, "нэр": row["Барааны нэр"],
+                    "ангилал": row["Ангилал"], "дэд": row["Дэд ангилал"],
+                    "гарал": row["Гарал"], "агуулах_нийт": 0, "агуулах_дэлгэрэнгүй": {},
                 }
-            item_wh[code]["агуулах_нийт"]              += row["Тоо"]
-            item_wh[code]["агуулах_дэлгэрэнгүй"][label] = \
-                item_wh[code]["агуулах_дэлгэрэнгүй"].get(label, 0) + row["Тоо"]
+            item_wh[code]["агуулах_нийт"] += row["Тоо"]
+            item_wh[code]["агуулах_дэлгэрэнгүй"][label] = (
+                item_wh[code]["агуулах_дэлгэрэнгүй"].get(label, 0) + row["Тоо"])
 
         wh_items = {c for c, v in item_wh.items() if v["агуулах_нийт"] > 0}
 
-        for branch_name, branch_data in BRANCH_MAP.items():
-            raw_names  = branch_data.get(item_type_mn, [])
-            branch_df  = type_df[type_df["Салбар"].isin(raw_names)]
-            branch_agg = (
-                branch_df.groupby("Барааны код")["Тоо"].sum().reset_index()
-            )
-            branch_items = set(branch_agg[branch_agg["Тоо"] > 0]["Барааны код"])
-
-            missing_codes = wh_items - branch_items
-            missing = [item_wh[c] for c in missing_codes if c in item_wh]
-            # Sort by name for consistency
-            missing.sort(key=lambda r: r["нэр"])
-
-            result[type_key][branch_name] = missing
-            print(f"  {type_key} / {branch_name}: {len(missing)} missing items")
-
+        for branch, bdata in BRANCH_MAP.items():
+            raw = bdata.get(tk, [])
+            branch_df  = tdf[tdf["Салбар"].isin(raw)]
+            branch_agg = branch_df.groupby("Барааны код")["Тоо"].sum().reset_index()
+            have = set(branch_agg[branch_agg["Тоо"] > 0]["Барааны код"])
+            missing = sorted([item_wh[c] for c in wh_items - have if c in item_wh], key=lambda r: r["нэр"])
+            result[tk][branch] = missing
+            print(f"  {tk} / {branch}: {len(missing)} missing")
     return result
 
 
 def build_imbalance(df):
     result = {}
-    for item_type_mn, type_key in TYPE_KEY.items():
-        type_df  = df[df["Байршил"] == item_type_mn]
-        wh_names = WAREHOUSE_NAMES[item_type_mn]
-        wh_labels = WAREHOUSE_LABELS[item_type_mn]
-        all_items = (
-            type_df[["Барааны код", "Барааны нэр", "Ангилал", "Дэд ангилал"]]
-            .drop_duplicates(subset=["Барааны код"])
-            .query("`Барааны код` != ''")
-        )
-
+    for tk in ALL_TYPES:
+        tdf = df[df["_type"] == tk]
+        all_items = tdf[["Барааны код","Барааны нэр","Ангилал","Дэд ангилал","Гарал"]].drop_duplicates(subset=["Барааны код"])
         rows = []
-        for _, item_row in all_items.iterrows():
-            code     = item_row["Барааны код"]
-            name     = item_row["Барааны нэр"]
-            ангилал  = item_row["Ангилал"]
-            дэд      = item_row["Дэд ангилал"]
-            item_df  = type_df[type_df["Барааны код"] == code]
+        for _, ir in all_items.iterrows():
+            code    = ir["Барааны код"]
+            item_df = tdf[tdf["Барааны код"] == code]
 
-            branch_stocks = {}
-            total_branch  = 0
-            for branch_name, branch_data in BRANCH_MAP.items():
-                raw = branch_data.get(item_type_mn, [])
-                qty = float(item_df[item_df["Салбар"].isin(raw)]["Тоо"].sum())
-                branch_stocks[branch_name] = qty
-                total_branch += qty
+            bs = {}; tb = 0
+            for branch, bdata in BRANCH_MAP.items():
+                qty = float(item_df[item_df["Салбар"].isin(bdata.get(tk,[]))]["Тоо"].sum())
+                bs[branch] = qty; tb += qty
 
-            # Per-warehouse breakdown
-            wh_breakdown = {}
-            wh_total = 0
-            for wh_raw in wh_names:
-                qty = float(item_df[item_df["Салбар"] == wh_raw]["Тоо"].sum())
-                label = wh_labels.get(wh_raw, wh_raw)
-                wh_breakdown[label] = qty
-                wh_total += qty
+            wbd = {}; wt = 0
+            for wraw in WAREHOUSE_NAMES[tk]:
+                qty = float(item_df[item_df["Салбар"] == wraw]["Тоо"].sum())
+                wbd[WAREHOUSE_LABELS[tk].get(wraw, wraw)] = qty; wt += qty
 
-            total = total_branch + wh_total
-            if total == 0:
-                continue
+            total = tb + wt
+            if total == 0: continue
+            if wt / total > 0.10: continue
 
-            # Rule 1: warehouse must be <=10% of total stock
-            # (if warehouse is large, the missing-items panel handles supply — skip here)
-            if total > 0 and wh_total / total > 0.10:
-                continue
-
-            # Rule 2: one branch holds >=70% of branch-only stock
-            is_imbalanced = False
-            if total_branch > 1:
-                for qty in branch_stocks.values():
-                    if qty / total_branch >= 0.70:
-                        is_imbalanced = True
-                        break
-
-            if is_imbalanced:
-                dominant = max(branch_stocks, key=lambda b: branch_stocks[b])
+            imb = any(qty / tb >= 0.70 for qty in bs.values()) if tb > 1 else False
+            if imb:
                 rows.append({
-                    "код": code, "нэр": name,
-                    "ангилал": ангилал, "дэд": дэд,
-                    **{b: branch_stocks[b] for b in BRANCH_MAP.keys()},
-                    "агуулах_нийт": wh_total,
-                    "агуулах_дэлгэрэнгүй": wh_breakdown,
-                    "салбар_нийт": total_branch,
-                    "нийт": total,
-                    "давамгай": dominant,
+                    "код": code, "нэр": ir["Барааны нэр"],
+                    "ангилал": ir["Ангилал"], "дэд": ir["Дэд ангилал"], "гарал": ir["Гарал"],
+                    **{b: bs[b] for b in BRANCH_MAP},
+                    "агуулах_нийт": wt, "агуулах_дэлгэрэнгүй": wbd,
+                    "салбар_нийт": tb, "нийт": total,
+                    "давамгай": max(bs, key=lambda b: bs[b]),
                 })
-
-        result[type_key] = rows
-        print(f"  {type_key} imbalanced: {len(rows)} items")
-
+        result[tk] = rows
+        print(f"  {tk} imbalanced: {len(rows)}")
     return result
 
 
 def build_meta(df):
-    """Collect all unique categories/subcategories per item type."""
     meta = {}
-    for item_type_mn, type_key in TYPE_KEY.items():
-        type_df = df[df["Байршил"] == item_type_mn]
-        cats    = sorted(set(type_df["Ангилал"].dropna().unique()) - {""})
-        # subcategory → parent category mapping
+    for tk in ALL_TYPES:
+        tdf  = df[df["_type"] == tk]
+        cats = sorted(set(tdf["Ангилал"].dropna().unique()) - {"", "Сэлбэг"})
         sub_map = {}
-        for _, row in type_df[["Ангилал","Дэд ангилал"]].drop_duplicates().iterrows():
-            cat = row["Ангилал"]
-            sub = row["Дэд ангилал"]
-            if sub and sub != "":
+        for _, row in tdf[["Ангилал","Дэд ангилал"]].drop_duplicates().iterrows():
+            cat, sub = row["Ангилал"], row["Дэд ангилал"]
+            if cat and sub:
                 sub_map.setdefault(cat, [])
-                if sub not in sub_map[cat]:
-                    sub_map[cat].append(sub)
-        for cat in sub_map:
-            sub_map[cat].sort()
-        meta[type_key] = {
-            "categories": cats,
-            "subcategories": sub_map,
-            "warehouses": list(WAREHOUSE_LABELS[item_type_mn].values()),
+                if sub not in sub_map[cat]: sub_map[cat].append(sub)
+        for cat in sub_map: sub_map[cat].sort()
+        origins = sorted(set(tdf["Гарал"].dropna().unique()) - {""})
+        meta[tk] = {
+            "categories": cats, "subcategories": sub_map,
+            "warehouses": list(WAREHOUSE_LABELS[tk].values()),
+            "origins": origins,
         }
     return meta
 
 
 def main():
     if not EXCEL.exists():
-        print(f"ERROR: {EXCEL} not found", file=sys.stderr)
-        sys.exit(1)
-
+        print(f"ERROR: {EXCEL} not found", file=sys.stderr); sys.exit(1)
     df = load_df()
-    print("Building missing-items data …")
-    missing = build_missing(df)
-    print("Building imbalance data …")
+    print(f"Loaded {len(df)} usable rows")
+    for t in ALL_TYPES: print(f"  {t}: {len(df[df['_type']==t])} rows")
+    print("\nBuilding missing-items …")
+    missing   = build_missing(df)
+    print("\nBuilding imbalance …")
     imbalance = build_imbalance(df)
-    print("Building meta …")
-    meta = build_meta(df)
-
-    payload = {
-        "missing":   missing,
-        "imbalance": imbalance,
-        "meta":      meta,
-        "branches":  list(BRANCH_MAP.keys()),
+    print("\nBuilding meta …")
+    meta      = build_meta(df)
+    payload   = {
+        "missing": missing, "imbalance": imbalance, "meta": meta,
+        "branches": list(BRANCH_MAP.keys()), "types": ALL_TYPES,
         "generated": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
     }
-
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
-    size_kb = OUT.stat().st_size // 1024
-    print(f"\n✅  Written {OUT}  ({size_kb} KB)")
-
+    OUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",",":")))
+    print(f"\n✅  Written {OUT}  ({OUT.stat().st_size//1024} KB)")
 
 if __name__ == "__main__":
     main()

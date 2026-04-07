@@ -301,6 +301,10 @@ tbody tr:hover{background:var(--surface2)}
         <label>Дэд ангилал</label>
         <div id="ms-subcat" class="ms-wrap"></div>
       </div>
+      <div class="toolbar-group" id="wrap-origin">
+        <label>Гарал үүсэл</label>
+        <div id="ms-origin" class="ms-wrap"></div>
+      </div>
       <div class="toolbar-group">
         <label>Агуулах харах</label>
         <div class="wh-toggle">
@@ -336,6 +340,7 @@ tbody tr:hover{background:var(--surface2)}
     <div class="type-btns">
       <button class="type-btn active" id="imb-ji"  onclick="setImbType('жижиг')">🛒 Жижиг бараа</button>
       <button class="type-btn"        id="imb-tom" onclick="setImbType('том')">🏗️ Том бараа</button>
+      <button class="type-btn"        id="imb-sel" onclick="setImbType('сэлбэг')">🔧 Сэлбэг</button>
     </div>
 
     <div class="toolbar">
@@ -357,6 +362,10 @@ tbody tr:hover{background:var(--surface2)}
       <div class="toolbar-group">
         <label>Салбар</label>
         <div id="ms-ibranch" class="ms-wrap"></div>
+      </div>
+      <div class="toolbar-group">
+        <label>Гарал үүсэл</label>
+        <div id="ms-iorigin" class="ms-wrap"></div>
       </div>
       <div class="export-btns">
         <button class="exp-btn" onclick="exportImbExcel()">📥 Excel татах</button>
@@ -396,8 +405,9 @@ let whView    = 'combined'; // 'combined' | 'expanded'
 const MPAGE   = 50;
 
 // Active filters for missing panel
-let mCats     = new Set(); // empty = all
+let mCats     = new Set();
 let mSubs     = new Set();
+let mOrigins  = new Set();
 
 let iType     = 'жижиг';
 let iSortCol  = 'нийт';
@@ -408,6 +418,7 @@ const IPAGE   = 50;
 let iCats     = new Set();
 let iSubs     = new Set();
 let iBranches = new Set();
+let iOrigins  = new Set();
 
 // ═══════════════════════════════════════════════════════
 //  BOOT
@@ -532,8 +543,9 @@ let mCatDD = null, mSubDD = null;
 
 function initMissing() {
   renderBranchBtns();
-  mCatDD = buildMS('ms-cat',  'Бүх ангилал',   getMCats(), sel => { mCats=sel; updateSubcatOpts(); mPage=1; renderMissing(); });
-  mSubDD = buildMS('ms-subcat','Бүх дэд ангилал', getMSubs(), sel => { mSubs=sel; mPage=1; renderMissing(); });
+  mCatDD    = buildMS('ms-cat',   'Бүх ангилал',     getMCats(),    sel=>{mCats=sel;updateSubcatOpts();mPage=1;renderMissing();});
+  mSubDD    = buildMS('ms-subcat','Бүх дэд ангилал', getMSubs(),    sel=>{mSubs=sel;mPage=1;renderMissing();});
+  mOriginDD = buildMS('ms-origin','Бүх гарал',        getMOrigins(), sel=>{mOrigins=sel;mPage=1;renderMissing();});
   renderMissing();
 }
 
@@ -550,20 +562,23 @@ function getMSubs(cats) {
   return [...new Set(out)].sort();
 }
 
+function getMOrigins() {
+  return ((DATA.meta||{})[mType]||{}).origins||[];
+}
 function updateSubcatOpts() {
   if (!mSubDD) return;
   mSubDD.dd._setOptions(getMSubs(mCats), true);
 }
 
 function setType(t) {
-  mType=t; mPage=1; mCats=new Set(); mSubs=new Set();
+  mType=t; mPage=1; mCats=new Set(); mSubs=new Set(); mOrigins=new Set();
   document.querySelectorAll('#missing-panel .type-btn').forEach((b,i)=>
-    b.classList.toggle('active',(t==='жижиг'&&i===0)||(t==='том'&&i===1)));
+    b.classList.toggle('active',(t==='жижиг'&&i===0)||(t==='том'&&i===1)||(t==='сэлбэг'&&i===2)));
   mBranch=BRANCHES[0];
   renderBranchBtns();
-  // Reinit dropdowns with new type options
-  mCatDD = buildMS('ms-cat',  'Бүх ангилал',   getMCats(), sel => { mCats=sel; updateSubcatOpts(); mPage=1; renderMissing(); });
-  mSubDD = buildMS('ms-subcat','Бүх дэд ангилал', getMSubs(), sel => { mSubs=sel; mPage=1; renderMissing(); });
+  mCatDD    = buildMS('ms-cat',   'Бүх ангилал',      getMCats(),   sel=>{mCats=sel;updateSubcatOpts();mPage=1;renderMissing();});
+  mSubDD    = buildMS('ms-subcat','Бүх дэд ангилал',  getMSubs(),   sel=>{mSubs=sel;mPage=1;renderMissing();});
+  mOriginDD = buildMS('ms-origin','Бүх гарал',         getMOrigins(),sel=>{mOrigins=sel;mPage=1;renderMissing();});
   renderMissing();
 }
 
@@ -586,8 +601,9 @@ function getMFiltered() {
   let items = ((DATA.missing[mType]||{})[mBranch]||[]).slice();
   const q = document.getElementById('m-search').value.toLowerCase();
   if (q) items = items.filter(r => r.нэр.toLowerCase().includes(q) || r.код.toLowerCase().includes(q));
-  if (mCats.size) items = items.filter(r => mCats.has(r.ангилал));
-  if (mSubs.size) items = items.filter(r => mSubs.has(r.дэд));
+  if (mCats.size)    items = items.filter(r => mCats.has(r.ангилал));
+  if (mSubs.size)    items = items.filter(r => mSubs.has(r.дэд));
+  if (mOrigins.size) items = items.filter(r => mOrigins.has(r.гарал));
   items.sort((a,b)=>{
     const av = mSortCol==='нэр'?a.нэр:mSortCol==='код'?a.код:mSortCol==='ангилал'?a.ангилал:a.агуулах_нийт;
     const bv = mSortCol==='нэр'?b.нэр:mSortCol==='код'?b.код:mSortCol==='ангилал'?b.ангилал:b.агуулах_нийт;
@@ -610,10 +626,12 @@ function renderMissing() {
   const meta   = (DATA.meta||{})[mType]||{};
   const whKeys = meta.warehouses || [];
 
+  const hasOrigin = getMOrigins().length > 0;
   const headCols = [
     {k:'код',    l:'Код'},
     {k:'нэр',    l:'Барааны нэр'},
     ...(hasCat ? [{k:'ангилал',l:'Ангилал'},{k:'дэд',l:'Дэд ангилал'}] : []),
+    ...(hasOrigin ? [{k:'гарал',l:'Гарал'}] : []),
     {k:'агуулах_нийт', l:'Агуулах нийт', num:true},
   ];
   if (whView==='expanded') {
@@ -636,6 +654,7 @@ function renderMissing() {
     tbody.innerHTML = rows.map(r => {
       let tds = `<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
       if (hasCat) tds += `<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
+      if (hasOrigin) tds += `<td><span style="font-size:.78rem;color:var(--muted)">${r.гарал||''}</span></td>`;
       tds += `<td class="num"><span class="bq bq-wh">${Math.round(r.агуулах_нийт).toLocaleString()}</span></td>`;
       if (whView==='expanded') {
         const det = r.агуулах_дэлгэрэнгүй||{};
@@ -662,12 +681,14 @@ function renderMissing() {
 let iCatDD=null, iSubDD=null, iBranchDD=null;
 
 function initImbalance() {
-  iCatDD    = buildMS('ms-icat','Бүх ангилал', getICats(), sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
-  iSubDD    = buildMS('ms-isub','Бүх дэд ангилал', getISubs(), sel=>{iSubs=sel;iPage=1;renderImbalance();});
-  iBranchDD = buildMS('ms-ibranch','Бүх салбар', BRANCHES, sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  iCatDD    = buildMS('ms-icat',   'Бүх ангилал',     getICats(),    sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
+  iSubDD    = buildMS('ms-isub',   'Бүх дэд ангилал', getISubs(),    sel=>{iSubs=sel;iPage=1;renderImbalance();});
+  iBranchDD = buildMS('ms-ibranch','Бүх салбар',       BRANCHES,      sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  iOriginDD = buildMS('ms-iorigin','Бүх гарал',        getIOrigins(), sel=>{iOrigins=sel;iPage=1;renderImbalance();});
 }
 
-function getICats() { return ((DATA.meta||{})[iType]||{}).categories||[]; }
+function getICats()    { return ((DATA.meta||{})[iType]||{}).categories||[]; }
+function getIOrigins() { return ((DATA.meta||{})[iType]||{}).origins||[]; }
 function getISubs(cats) {
   const sm = ((DATA.meta||{})[iType]||{}).subcategories||{};
   if (!cats||cats.size===0) return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
@@ -676,12 +697,14 @@ function getISubs(cats) {
 function updateISubOpts() { if(iSubDD)iSubDD.dd._setOptions(getISubs(iCats),true); }
 
 function setImbType(t) {
-  iType=t; iPage=1; iCats=new Set(); iSubs=new Set(); iBranches=new Set();
+  iType=t; iPage=1; iCats=new Set(); iSubs=new Set(); iBranches=new Set(); iOrigins=new Set();
   document.getElementById('imb-ji') .classList.toggle('active',t==='жижиг');
   document.getElementById('imb-tom').classList.toggle('active',t==='том');
-  iCatDD    = buildMS('ms-icat','Бүх ангилал', getICats(), sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
-  iSubDD    = buildMS('ms-isub','Бүх дэд ангилал', getISubs(), sel=>{iSubs=sel;iPage=1;renderImbalance();});
-  iBranchDD = buildMS('ms-ibranch','Бүх салбар', BRANCHES, sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  document.getElementById('imb-sel').classList.toggle('active',t==='сэлбэг');
+  iCatDD    = buildMS('ms-icat',   'Бүх ангилал',     getICats(),    sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
+  iSubDD    = buildMS('ms-isub',   'Бүх дэд ангилал', getISubs(),    sel=>{iSubs=sel;iPage=1;renderImbalance();});
+  iBranchDD = buildMS('ms-ibranch','Бүх салбар',       BRANCHES,      sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  iOriginDD = buildMS('ms-iorigin','Бүх гарал',        getIOrigins(), sel=>{iOrigins=sel;iPage=1;renderImbalance();});
   renderImbalance();
 }
 
@@ -694,9 +717,8 @@ function getIFiltered() {
   if (q) items=items.filter(r=>r.нэр.toLowerCase().includes(q)||r.код.toLowerCase().includes(q));
   if (iCats.size)     items=items.filter(r=>iCats.has(r.ангилал));
   if (iSubs.size)     items=items.filter(r=>iSubs.has(r.дэд));
-  if (iBranches.size) {
-    items=items.filter(r=>[...iBranches].some(b=>r[b]&&r[b]>0));
-  }
+  if (iOrigins.size)  items=items.filter(r=>iOrigins.has(r.гарал));
+  if (iBranches.size) items=items.filter(r=>[...iBranches].some(b=>r[b]&&r[b]>0));
   items.sort((a,b)=>{
     const av=a[iSortCol]||0, bv=b[iSortCol]||0;
     return typeof av==='string'?iSortDir*av.localeCompare(bv,'mn'):iSortDir*(av-bv);
@@ -810,14 +832,17 @@ function exportExcel() {
   const blank  = [];
 
   // Header row
+  const hasOrigin = getMOrigins().length>0;
   const header = ['Барааны код','Барааны нэр'];
   if(hasCat)header.push('Ангилал','Дэд ангилал');
+  if(hasOrigin)header.push('Гарал үүсэл');
   header.push('Агуулах нийт');
   if(whView==='expanded')whKeys.forEach(w=>header.push(w));
 
   const dataRows = items.map(r=>{
     const row=[r.код,r.нэр];
     if(hasCat)row.push(r.ангилал||'',r.дэд||'');
+    if(hasOrigin)row.push(r.гарал||'');
     row.push(r.агуулах_нийт);
     if(whView==='expanded'){const d=r.агуулах_дэлгэрэнгүй||{};whKeys.forEach(w=>row.push(d[w]||0));}
     return row;
