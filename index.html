@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Салбар дээр үлдэгдэлгүй бараа</title>
-<!-- SheetJS for Excel export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
@@ -15,16 +14,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
-
-/* ── Loader ── */
 #loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:16px;z-index:999;transition:opacity .4s}
 #loader.gone{opacity:0;pointer-events:none}
 .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);
   border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Login screen ── */
 #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;
   justify-content:center;z-index:998;animation:fadeIn .35s ease}
 #login-screen.gone{display:none}
@@ -57,55 +52,37 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #lock-btn{padding:4px 10px;background:transparent;border:1px solid var(--border);
   border-radius:7px;color:var(--muted);cursor:pointer;font-size:.73rem;transition:all .15s}
 #lock-btn:hover{border-color:var(--red);color:var(--red)}
-
-/* ── Header ── */
 header{background:linear-gradient(135deg,#1a1d27,#222538);border-bottom:1px solid var(--border);
   padding:16px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
 header h1{font-size:1.15rem;font-weight:700}
 .hbadge{background:var(--accent);color:#fff;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700}
 #updated-at{margin-left:auto;font-size:.72rem;color:var(--muted)}
-
-/* ── Main ── */
 .main{padding:22px 28px;max-width:1800px;margin:0 auto}
-
-/* ── Mode tabs ── */
 .mode-tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
 .mode-btn{padding:9px 20px;border-radius:var(--radius);border:1.5px solid var(--border);
   background:var(--surface);color:var(--muted);cursor:pointer;font-size:.88rem;font-weight:600;transition:all .18s}
 .mode-btn:hover{border-color:var(--accent);color:var(--text)}
 .mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .mode-btn.imb.active{background:linear-gradient(135deg,var(--amber),var(--red));border-color:var(--amber)}
-
-/* ── Section label ── */
 .slabel{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:7px}
-
-/* ── Type buttons ── */
 .type-btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
 .type-btn{padding:8px 18px;border-radius:var(--radius);border:1.5px solid var(--border);
   background:var(--surface);color:var(--muted);cursor:pointer;font-size:.85rem;font-weight:600;transition:all .18s}
 .type-btn:hover{border-color:var(--accent2);color:var(--text)}
 .type-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff}
-
-/* ── Branch buttons ── */
 .branch-btns{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
 .branch-btn{padding:7px 16px;border-radius:var(--radius);border:1.5px solid var(--border);
   background:var(--surface2);color:var(--muted);cursor:pointer;font-size:.83rem;font-weight:500;transition:all .18s}
 .branch-btn:hover{border-color:var(--green);color:var(--text)}
 .branch-btn.active{background:var(--green);border-color:var(--green);color:#0f2e0f;font-weight:700}
-
-/* ── Toolbar row ── */
 .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end}
 .toolbar-group{display:flex;flex-direction:column;gap:5px}
 .toolbar-group label{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-
-/* ── Search ── */
 .search-wrap{position:relative}
 .search-wrap input{width:240px;padding:8px 14px 8px 34px;background:var(--surface);
   border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.87rem;outline:none;transition:border-color .2s}
 .search-wrap input:focus{border-color:var(--accent)}
 .search-wrap .sico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem}
-
-/* ── Multi-select dropdown ── */
 .ms-wrap{position:relative}
 .ms-trigger{min-width:160px;padding:8px 30px 8px 12px;background:var(--surface);
   border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);
@@ -131,29 +108,21 @@ header h1{font-size:1.15rem;font-weight:700}
   border-radius:6px;color:var(--muted);font-size:.76rem;cursor:pointer;transition:all .15s}
 .ms-actions button:hover{border-color:var(--accent);color:var(--text)}
 .ms-badge{background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:.68rem;font-weight:700;margin-left:4px}
-
-/* ── Warehouse toggle ── */
 .wh-toggle{display:flex;gap:0;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .wh-toggle button{padding:7px 13px;background:var(--surface);border:none;color:var(--muted);
   cursor:pointer;font-size:.78rem;font-weight:600;transition:all .15s;white-space:nowrap}
 .wh-toggle button:not(:last-child){border-right:1px solid var(--border)}
 .wh-toggle button.active{background:var(--cyan);color:#051a1f;font-weight:700}
-
-/* ── Export buttons ── */
 .export-btns{display:flex;gap:8px;margin-left:auto}
 .exp-btn{padding:7px 14px;border-radius:var(--radius);border:1.5px solid var(--border);
   background:var(--surface);color:var(--muted);cursor:pointer;font-size:.8rem;font-weight:600;
   transition:all .18s;white-space:nowrap}
 .exp-btn:hover{border-color:var(--amber);color:var(--amber)}
 .exp-btn.pdf:hover{border-color:var(--red);color:var(--red)}
-
-/* ── Stats ── */
 .stats-bar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 18px;min-width:120px}
 .stat-card .val{font-size:1.45rem;font-weight:800;color:var(--accent)}
 .stat-card .lbl{font-size:.7rem;color:var(--muted);margin-top:2px}
-
-/* ── Table ── */
 .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:.855rem}
 thead tr{background:var(--surface2)}
@@ -178,13 +147,8 @@ tbody tr:hover{background:var(--surface2)}
 .bq-wh-sm{background:rgba(6,182,212,.12);color:var(--cyan);font-size:.72rem;padding:1px 6px;margin:1px}
 .imb-high{background:rgba(239,68,68,.18);color:var(--red);font-weight:800;border-radius:6px;
   padding:3px 9px;display:inline-block}
-.imb-dom{color:var(--red);font-weight:800}
 .imb-low{color:var(--muted)}
 .tot-cell{font-weight:800}
-.branch-nийт{font-size:.72rem;color:var(--muted);margin-top:1px}
-.wh-detail{font-size:.75rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
-
-/* ── Pagination ── */
 .pagination{display:flex;align-items:center;gap:6px;margin-top:13px;flex-wrap:wrap}
 .pg{padding:5px 10px;background:var(--surface);border:1px solid var(--border);
   border-radius:7px;color:var(--muted);cursor:pointer;font-size:.78rem;transition:all .15s}
@@ -192,13 +156,9 @@ tbody tr:hover{background:var(--surface2)}
 .pg.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .pg[disabled]{opacity:.3;cursor:default;pointer-events:none}
 .pg-info{color:var(--muted);font-size:.78rem;margin-left:5px}
-
 .empty{padding:56px;text-align:center;color:var(--muted)}
 .empty .eico{font-size:2.6rem;margin-bottom:9px}
 .hidden{display:none!important}
-.divider{height:1px;background:var(--border);margin:18px 0}
-
-/* ── Print / PDF styles ── */
 @media print{
   #loader,header .hbadge,.mode-tabs,.type-btns,.branch-btns,.toolbar,
   .export-btns,.pagination,#updated-at{display:none!important}
@@ -214,23 +174,16 @@ tbody tr:hover{background:var(--surface2)}
 .print-header{display:none;margin-bottom:18px}
 .print-header h2{font-size:1.1rem;font-weight:700}
 .print-header p{font-size:.82rem;color:#555;margin-top:4px}
-
 @media(max-width:768px){
-  .main{padding:12px}
-  header{padding:10px 14px}
-  header h1{font-size:.95rem}
-  .search-wrap input{width:100%}
-  .toolbar{flex-direction:column}
+  .main{padding:12px}header{padding:10px 14px}header h1{font-size:.95rem}
+  .search-wrap input{width:100%}.toolbar{flex-direction:column}
 }
 #main-content{display:block}
 #main-content.hidden{display:none}
 </style>
 </head>
 <body>
-
 <div id="loader"><div class="spinner"></div><p style="color:var(--muted)">Өгөгдөл ачааллаж байна…</p></div>
-
-<!-- ══ LOGIN SCREEN ══ -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">📦</div>
@@ -245,13 +198,9 @@ tbody tr:hover{background:var(--surface2)}
     </div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Нэвтрэх</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-footer">
-      Зөвхөн эрх бүхий хэрэглэгчдэд зориулагдсан.<br>
-      Асуудал гарвал системийн админтай холбогдоно уу.
-    </div>
+    <div class="login-footer">Зөвхөн эрх бүхий хэрэглэгчдэд зориулагдсан.<br>Асуудал гарвал системийн админтай холбогдоно уу.</div>
   </div>
 </div>
-
 <div id="main-content" class="hidden">
 <header>
   <div style="font-size:1.3rem">📦</div>
@@ -260,51 +209,31 @@ tbody tr:hover{background:var(--surface2)}
   <span id="updated-at"></span>
   <button id="lock-btn" onclick="lockSession()" title="Гарах">🔒 Гарах</button>
 </header>
-
 <div class="main">
-
   <div class="mode-tabs">
     <button class="mode-btn active" onclick="setMode('missing')">🔍 Үлдэгдэлгүй барааны жагсаалт</button>
     <button class="mode-btn imb"   onclick="setMode('imbalance')">⚖️ Тэнцвэргүй үлдэгдэл</button>
   </div>
-
-  <!-- ══════════════ MISSING PANEL ══════════════ -->
   <div id="missing-panel">
-    <div class="print-header" id="print-title-missing">
-      <h2 id="ph-branch">—</h2>
-      <p id="ph-date">—</p>
-    </div>
-
+    <div class="print-header" id="print-title-missing"><h2 id="ph-branch">—</h2><p id="ph-date">—</p></div>
     <div class="slabel">Бараа төрөл</div>
     <div class="type-btns">
       <button class="type-btn active" onclick="setType('жижиг')">🛒 Жижиг бараа</button>
       <button class="type-btn"        onclick="setType('том')">🏗️ Том бараа</button>
+      <button class="type-btn"        onclick="setType('сэлбэг')">🔧 Сэлбэг</button>
     </div>
-
     <div class="slabel">Салбар сонгох</div>
     <div class="branch-btns" id="branch-btns"></div>
-
-    <!-- Toolbar -->
     <div class="toolbar" id="missing-toolbar">
       <div class="toolbar-group">
         <label>Хайх</label>
-        <div class="search-wrap">
-          <span class="sico">🔎</span>
+        <div class="search-wrap"><span class="sico">🔎</span>
           <input type="text" id="m-search" placeholder="Нэр эсвэл код…" oninput="mFilter()">
         </div>
       </div>
-      <div class="toolbar-group" id="wrap-cat">
-        <label>Ангилал</label>
-        <div id="ms-cat" class="ms-wrap"></div>
-      </div>
-      <div class="toolbar-group" id="wrap-subcat">
-        <label>Дэд ангилал</label>
-        <div id="ms-subcat" class="ms-wrap"></div>
-      </div>
-      <div class="toolbar-group" id="wrap-origin">
-        <label>Гарал үүсэл</label>
-        <div id="ms-origin" class="ms-wrap"></div>
-      </div>
+      <div class="toolbar-group"><label>Ангилал</label><div id="ms-cat" class="ms-wrap"></div></div>
+      <div class="toolbar-group"><label>Дэд ангилал</label><div id="ms-subcat" class="ms-wrap"></div></div>
+      <div class="toolbar-group"><label>Гарал үүсэл</label><div id="ms-origin" class="ms-wrap"></div></div>
       <div class="toolbar-group">
         <label>Агуулах харах</label>
         <div class="wh-toggle">
@@ -317,492 +246,320 @@ tbody tr:hover{background:var(--surface2)}
         <button class="exp-btn pdf" onclick="exportPDF()">🖨️ PDF хэвлэх</button>
       </div>
     </div>
-
     <div class="stats-bar" id="m-stats"></div>
-
     <div class="table-wrap">
-      <table id="m-table">
-        <thead><tr id="m-thead-row"></tr></thead>
-        <tbody id="m-tbody"></tbody>
-      </table>
+      <table><thead><tr id="m-thead-row"></tr></thead><tbody id="m-tbody"></tbody></table>
     </div>
     <div class="pagination" id="m-pg"></div>
   </div>
-
-  <!-- ══════════════ IMBALANCE PANEL ══════════════ -->
   <div id="imbalance-panel" class="hidden">
-    <div class="print-header" id="print-title-imb">
-      <h2>Тэнцвэргүй үлдэгдэл</h2>
-      <p id="ph-imb-date">—</p>
-    </div>
-
+    <div class="print-header" id="print-title-imb"><h2>Тэнцвэргүй үлдэгдэл</h2><p id="ph-imb-date">—</p></div>
     <div class="slabel">Бараа төрөл</div>
     <div class="type-btns">
       <button class="type-btn active" id="imb-ji"  onclick="setImbType('жижиг')">🛒 Жижиг бараа</button>
       <button class="type-btn"        id="imb-tom" onclick="setImbType('том')">🏗️ Том бараа</button>
       <button class="type-btn"        id="imb-sel" onclick="setImbType('сэлбэг')">🔧 Сэлбэг</button>
     </div>
-
     <div class="toolbar">
       <div class="toolbar-group">
         <label>Хайх</label>
-        <div class="search-wrap">
-          <span class="sico">🔎</span>
+        <div class="search-wrap"><span class="sico">🔎</span>
           <input type="text" id="i-search" placeholder="Нэр эсвэл код…" oninput="iFilter()">
         </div>
       </div>
-      <div class="toolbar-group">
-        <label>Ангилал</label>
-        <div id="ms-icat" class="ms-wrap"></div>
-      </div>
-      <div class="toolbar-group">
-        <label>Дэд ангилал</label>
-        <div id="ms-isub" class="ms-wrap"></div>
-      </div>
-      <div class="toolbar-group">
-        <label>Салбар</label>
-        <div id="ms-ibranch" class="ms-wrap"></div>
-      </div>
-      <div class="toolbar-group">
-        <label>Гарал үүсэл</label>
-        <div id="ms-iorigin" class="ms-wrap"></div>
-      </div>
+      <div class="toolbar-group"><label>Ангилал</label><div id="ms-icat" class="ms-wrap"></div></div>
+      <div class="toolbar-group"><label>Дэд ангилал</label><div id="ms-isub" class="ms-wrap"></div></div>
+      <div class="toolbar-group"><label>Салбар</label><div id="ms-ibranch" class="ms-wrap"></div></div>
+      <div class="toolbar-group"><label>Гарал үүсэл</label><div id="ms-iorigin" class="ms-wrap"></div></div>
       <div class="export-btns">
         <button class="exp-btn" onclick="exportImbExcel()">📥 Excel татах</button>
         <button class="exp-btn pdf" onclick="exportImbPDF()">🖨️ PDF хэвлэх</button>
       </div>
     </div>
-
     <div class="stats-bar" id="i-stats"></div>
-
     <div class="table-wrap">
-      <table id="i-table">
-        <thead><tr id="i-thead-row"></tr></thead>
-        <tbody id="i-tbody"></tbody>
-      </table>
+      <table><thead><tr id="i-thead-row"></tr></thead><tbody id="i-tbody"></tbody></table>
     </div>
     <div class="pagination" id="i-pg"></div>
   </div>
-
-</div><!-- .main -->
-</div><!-- #main-content -->
-
+</div>
+</div>
 <script>
-// ═══════════════════════════════════════════════════════
-//  DATA & STATE
-// ═══════════════════════════════════════════════════════
-let DATA = null;
+let DATA=null;
+const BRANCHES=['Очир салбар','25 салбар','Д1000 салбар','Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'];
+let mode='missing',mType='жижиг',mBranch=BRANCHES[0],mSortCol='агуулах_нийт',mSortDir=-1,mPage=1,whView='combined';
+const MPAGE=50;
+let mCats=new Set(),mSubs=new Set(),mOrigins=new Set();
+let iType='жижиг',iSortCol='нийт',iSortDir=-1,iPage=1;
+const IPAGE=50;
+let iCats=new Set(),iSubs=new Set(),iBranches=new Set(),iOrigins=new Set();
 
-const BRANCHES = ['Очир салбар','25 салбар','Д1000 салбар','Мишээл салбар','Алтан-Орд салбар','Чулуун овоо салбар'];
-
-let mode      = 'missing';
-let mType     = 'жижиг';
-let mBranch   = BRANCHES[0];
-let mSortCol  = 'агуулах_нийт';
-let mSortDir  = -1;
-let mPage     = 1;
-let whView    = 'combined'; // 'combined' | 'expanded'
-const MPAGE   = 50;
-
-// Active filters for missing panel
-let mCats     = new Set();
-let mSubs     = new Set();
-let mOrigins  = new Set();
-
-let iType     = 'жижиг';
-let iSortCol  = 'нийт';
-let iSortDir  = -1;
-let iPage     = 1;
-let iWhView   = 'combined';
-const IPAGE   = 50;
-let iCats     = new Set();
-let iSubs     = new Set();
-let iBranches = new Set();
-let iOrigins  = new Set();
-
-// ═══════════════════════════════════════════════════════
-//  BOOT
-// ═══════════════════════════════════════════════════════
-async function boot() {
-  try {
-    const res = await fetch('data/stock.json?v=' + Date.now());
-    if (!res.ok) throw new Error(res.statusText);
-    DATA = await res.json();
-  } catch(e) {
-    document.getElementById('loader').innerHTML =
-      `<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>${e.message}</p>`;
-    return;
-  }
-  if (DATA.generated)
-    document.getElementById('updated-at').textContent = 'Шинэчлэгдсэн: ' + DATA.generated;
-  document.getElementById('loader').classList.add('gone');
-  initMissing();
-  initImbalance();
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.mode-btn').forEach((b,i)=>b.classList.toggle('active',(m==='missing'&&i===0)||(m==='imbalance'&&i===1)));
+  document.getElementById('missing-panel').classList.toggle('hidden',m!=='missing');
+  document.getElementById('imbalance-panel').classList.toggle('hidden',m!=='imbalance');
 }
 
-// ═══════════════════════════════════════════════════════
-//  MODE
-// ═══════════════════════════════════════════════════════
-function setMode(m) {
-  mode = m;
-  document.querySelectorAll('.mode-btn').forEach((b,i)=>
-    b.classList.toggle('active',(m==='missing'&&i===0)||(m==='imbalance'&&i===1)));
-  document.getElementById('missing-panel').classList.toggle('hidden', m!=='missing');
-  document.getElementById('imbalance-panel').classList.toggle('hidden', m!=='imbalance');
-}
-
-// ═══════════════════════════════════════════════════════
-//  MULTI-SELECT DROPDOWN  (generic factory)
-// ═══════════════════════════════════════════════════════
-function buildMS(containerId, placeholder, options, onchange) {
-  const wrap = document.getElementById(containerId);
-  if (!wrap) return;
-  let selected = new Set();
-  let filterQ  = '';
-
-  wrap.innerHTML = '';
-  const trigger = document.createElement('div');
-  trigger.className = 'ms-trigger';
-  trigger.innerHTML = `<span class="ms-label">${placeholder}</span><span class="arrow">▼</span>`;
+function buildMS(containerId,placeholder,options,onchange){
+  const wrap=document.getElementById(containerId);
+  if(!wrap)return;
+  let selected=new Set(),filterQ='';
+  wrap.innerHTML='';
+  const trigger=document.createElement('div');
+  trigger.className='ms-trigger';
+  trigger.innerHTML=`<span class="ms-label">${placeholder}</span><span class="arrow">▼</span>`;
   wrap.appendChild(trigger);
-
-  const dd = document.createElement('div');
-  dd.className = 'ms-dropdown hidden';
-  dd.innerHTML = `
-    <div class="ms-search"><input type="text" placeholder="Хайх…" oninput="this.closest('.ms-dropdown')._filterOpts(this.value)"></div>
+  const dd=document.createElement('div');
+  dd.className='ms-dropdown hidden';
+  dd.innerHTML=`<div class="ms-search"><input type="text" placeholder="Хайх…" oninput="this.closest('.ms-dropdown')._filterOpts(this.value)"></div>
     <div class="ms-list"></div>
     <div class="ms-actions">
       <button onclick="this.closest('.ms-dropdown')._selAll()">Бүгдийг сонгох</button>
       <button onclick="this.closest('.ms-dropdown')._clear()">Цэвэрлэх</button>
     </div>`;
   wrap.appendChild(dd);
-
-  function renderOpts() {
-    const list = dd.querySelector('.ms-list');
-    const vis  = options.filter(o => !filterQ || o.toLowerCase().includes(filterQ));
-    list.innerHTML = vis.length
-      ? vis.map(o => `<label class="ms-item">
-          <input type="checkbox" ${selected.has(o)?'checked':''} onchange="this.closest('.ms-dropdown')._toggle('${o.replace(/'/g,"\\'")}',this.checked)">
-          <span>${o}</span>
-        </label>`).join('')
-      : `<div class="ms-item" style="color:var(--muted)">Олдсонгүй</div>`;
+  function renderOpts(){
+    const list=dd.querySelector('.ms-list');
+    const vis=options.filter(o=>!filterQ||o.toLowerCase().includes(filterQ));
+    list.innerHTML=vis.length?vis.map(o=>`<label class="ms-item"><input type="checkbox" ${selected.has(o)?'checked':''} onchange="this.closest('.ms-dropdown')._toggle('${o.replace(/'/g,"\\'")}',this.checked)"><span>${o}</span></label>`).join(''):`<div class="ms-item" style="color:var(--muted)">Олдсонгүй</div>`;
   }
-
-  function updateTrigger() {
-    const lbl = trigger.querySelector('.ms-label');
-    if (selected.size === 0) {
-      lbl.innerHTML = placeholder;
-    } else if (selected.size <= 2) {
-      lbl.innerHTML = [...selected].join(', ');
-    } else {
-      lbl.innerHTML = `${[...selected][0]} <span class="ms-badge">+${selected.size-1}</span>`;
-    }
+  function updateTrigger(){
+    const lbl=trigger.querySelector('.ms-label');
+    if(selected.size===0){lbl.innerHTML=placeholder;}
+    else if(selected.size<=2){lbl.innerHTML=[...selected].join(', ');}
+    else{lbl.innerHTML=`${[...selected][0]} <span class="ms-badge">+${selected.size-1}</span>`;}
     onchange(selected);
   }
-
-  dd._toggle = (o, checked) => { checked ? selected.add(o) : selected.delete(o); renderOpts(); updateTrigger(); };
-  dd._selAll = () => { options.forEach(o => selected.add(o)); renderOpts(); updateTrigger(); };
-  dd._clear  = () => { selected.clear(); renderOpts(); updateTrigger(); };
-  dd._filterOpts = q => { filterQ = q.toLowerCase(); renderOpts(); };
-  dd._setOptions = (opts, keepSelected) => {
-    if (!keepSelected) selected.clear();
-    else selected = new Set([...selected].filter(s => opts.includes(s)));
-    options = opts; filterQ = ''; renderOpts(); updateTrigger();
+  dd._toggle=(o,checked)=>{checked?selected.add(o):selected.delete(o);renderOpts();updateTrigger();};
+  dd._selAll=()=>{options.forEach(o=>selected.add(o));renderOpts();updateTrigger();};
+  dd._clear=()=>{selected.clear();renderOpts();updateTrigger();};
+  dd._filterOpts=q=>{filterQ=q.toLowerCase();renderOpts();};
+  dd._setOptions=(opts,keepSelected)=>{
+    if(!keepSelected)selected.clear();
+    else selected=new Set([...selected].filter(s=>opts.includes(s)));
+    options=opts;filterQ='';renderOpts();updateTrigger();
   };
-  dd._getSelected = () => selected;
-
-  trigger.onclick = (e) => {
+  trigger.onclick=(e)=>{
     e.stopPropagation();
-    const open = !dd.classList.contains('hidden');
-    // close all others
-    document.querySelectorAll('.ms-dropdown').forEach(d => d.classList.add('hidden'));
-    document.querySelectorAll('.ms-trigger').forEach(t => t.classList.remove('open'));
-    if (!open) {
-      dd.classList.remove('hidden');
-      trigger.classList.add('open');
-      renderOpts();
-    }
+    const open=!dd.classList.contains('hidden');
+    document.querySelectorAll('.ms-dropdown').forEach(d=>d.classList.add('hidden'));
+    document.querySelectorAll('.ms-trigger').forEach(t=>t.classList.remove('open'));
+    if(!open){dd.classList.remove('hidden');trigger.classList.add('open');renderOpts();}
   };
-
-  wrap._dd = dd;
-  wrap._getSelected = () => selected;
+  wrap._dd=dd;wrap._getSelected=()=>selected;
   renderOpts();
-  return { dd, trigger, getSelected: ()=>selected };
+  return{dd,trigger,getSelected:()=>selected};
 }
-
-// Close dropdowns on outside click
-document.addEventListener('click', () => {
+document.addEventListener('click',()=>{
   document.querySelectorAll('.ms-dropdown').forEach(d=>d.classList.add('hidden'));
   document.querySelectorAll('.ms-trigger').forEach(t=>t.classList.remove('open'));
 });
 
-// ═══════════════════════════════════════════════════════
-//  MISSING PANEL
-// ═══════════════════════════════════════════════════════
-let mCatDD = null, mSubDD = null;
-
-function initMissing() {
+let mCatDD=null,mSubDD=null,mOriginDD=null;
+function initMissing(){
   renderBranchBtns();
-  mCatDD    = buildMS('ms-cat',   'Бүх ангилал',     getMCats(),    sel=>{mCats=sel;updateSubcatOpts();mPage=1;renderMissing();});
-  mSubDD    = buildMS('ms-subcat','Бүх дэд ангилал', getMSubs(),    sel=>{mSubs=sel;mPage=1;renderMissing();});
-  mOriginDD = buildMS('ms-origin','Бүх гарал',        getMOrigins(), sel=>{mOrigins=sel;mPage=1;renderMissing();});
+  mCatDD=buildMS('ms-cat','Бүх ангилал',getMCats(),sel=>{mCats=sel;updateSubcatOpts();mPage=1;renderMissing();});
+  mSubDD=buildMS('ms-subcat','Бүх дэд ангилал',getMSubs(),sel=>{mSubs=sel;mPage=1;renderMissing();});
+  mOriginDD=buildMS('ms-origin','Бүх гарал',getMOrigins(),sel=>{mOrigins=sel;mPage=1;renderMissing();});
   renderMissing();
 }
+function getMCats(){return((DATA.meta||{})[mType]||{}).categories||[];}
+function getMSubs(cats){
+  const sm=((DATA.meta||{})[mType]||{}).subcategories||{};
+  if(!cats||cats.size===0)return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
+  let out=[];cats.forEach(c=>{if(sm[c])out=out.concat(sm[c]);});return[...new Set(out)].sort();
+}
+function getMOrigins(){return((DATA.meta||{})[mType]||{}).origins||[];}
+function updateSubcatOpts(){if(!mSubDD)return;mSubDD.dd._setOptions(getMSubs(mCats),true);}
 
-function getMCats() {
-  const meta = (DATA.meta||{})[mType] || {};
-  return meta.categories || [];
-}
-function getMSubs(cats) {
-  const meta = (DATA.meta||{})[mType] || {};
-  const sm   = meta.subcategories || {};
-  if (!cats || cats.size === 0) return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
-  let out = [];
-  cats.forEach(c => { if (sm[c]) out = out.concat(sm[c]); });
-  return [...new Set(out)].sort();
-}
-
-function getMOrigins() {
-  return ((DATA.meta||{})[mType]||{}).origins||[];
-}
-function updateSubcatOpts() {
-  if (!mSubDD) return;
-  mSubDD.dd._setOptions(getMSubs(mCats), true);
-}
-
-function setType(t) {
-  mType=t; mPage=1; mCats=new Set(); mSubs=new Set(); mOrigins=new Set();
-  document.querySelectorAll('#missing-panel .type-btn').forEach((b,i)=>
-    b.classList.toggle('active',(t==='жижиг'&&i===0)||(t==='том'&&i===1)||(t==='сэлбэг'&&i===2)));
-  mBranch=BRANCHES[0];
-  renderBranchBtns();
-  mCatDD    = buildMS('ms-cat',   'Бүх ангилал',      getMCats(),   sel=>{mCats=sel;updateSubcatOpts();mPage=1;renderMissing();});
-  mSubDD    = buildMS('ms-subcat','Бүх дэд ангилал',  getMSubs(),   sel=>{mSubs=sel;mPage=1;renderMissing();});
-  mOriginDD = buildMS('ms-origin','Бүх гарал',         getMOrigins(),sel=>{mOrigins=sel;mPage=1;renderMissing();});
+function setType(t){
+  mType=t;mPage=1;mCats=new Set();mSubs=new Set();mOrigins=new Set();
+  document.querySelectorAll('#missing-panel .type-btn').forEach((b,i)=>b.classList.toggle('active',(t==='жижиг'&&i===0)||(t==='том'&&i===1)||(t==='сэлбэг'&&i===2)));
+  mBranch=BRANCHES[0];renderBranchBtns();
+  mCatDD=buildMS('ms-cat','Бүх ангилал',getMCats(),sel=>{mCats=sel;updateSubcatOpts();mPage=1;renderMissing();});
+  mSubDD=buildMS('ms-subcat','Бүх дэд ангилал',getMSubs(),sel=>{mSubs=sel;mPage=1;renderMissing();});
+  mOriginDD=buildMS('ms-origin','Бүх гарал',getMOrigins(),sel=>{mOrigins=sel;mPage=1;renderMissing();});
   renderMissing();
 }
-
-function renderBranchBtns() {
-  document.getElementById('branch-btns').innerHTML =
-    BRANCHES.map(b=>`<button class="branch-btn ${b===mBranch?'active':''}" onclick="setBranch('${b}')">${b}</button>`).join('');
+function renderBranchBtns(){
+  document.getElementById('branch-btns').innerHTML=BRANCHES.map(b=>`<button class="branch-btn ${b===mBranch?'active':''}" onclick="setBranch('${b}')">${b}</button>`).join('');
 }
-
-function setBranch(b) { mBranch=b; mPage=1; renderBranchBtns(); renderMissing(); }
-function setWhView(v) {
+function setBranch(b){mBranch=b;mPage=1;renderBranchBtns();renderMissing();}
+function setWhView(v){
   whView=v;
   document.getElementById('wh-combined').classList.toggle('active',v==='combined');
   document.getElementById('wh-expanded').classList.toggle('active',v==='expanded');
+  mSortCol='агуулах_нийт'; mSortDir=-1;
   renderMissing();
 }
-function mSort(col) { if(mSortCol===col)mSortDir*=-1; else{mSortCol=col;mSortDir=-1;} mPage=1; renderMissing(); }
-function mFilter() { mPage=1; renderMissing(); }
+function mSort(col){if(mSortCol===col)mSortDir*=-1;else{mSortCol=col;mSortDir=-1;}mPage=1;renderMissing();}
+function mFilter(){mPage=1;renderMissing();}
 
-function getMFiltered() {
-  let items = ((DATA.missing[mType]||{})[mBranch]||[]).slice();
-  const q = document.getElementById('m-search').value.toLowerCase();
-  if (q) items = items.filter(r => r.нэр.toLowerCase().includes(q) || r.код.toLowerCase().includes(q));
-  if (mCats.size)    items = items.filter(r => mCats.has(r.ангилал));
-  if (mSubs.size)    items = items.filter(r => mSubs.has(r.дэд));
-  if (mOrigins.size) items = items.filter(r => mOrigins.has(r.гарал));
+function getMFiltered(){
+  let items=((DATA.missing[mType]||{})[mBranch]||[]).slice();
+  const q=document.getElementById('m-search').value.toLowerCase();
+  if(q)items=items.filter(r=>r.нэр.toLowerCase().includes(q)||r.код.toLowerCase().includes(q));
+  if(mCats.size)items=items.filter(r=>mCats.has(r.ангилал));
+  if(mSubs.size)items=items.filter(r=>mSubs.has(r.дэд));
+  if(mOrigins.size)items=items.filter(r=>mOrigins.has(r.гарал));
   items.sort((a,b)=>{
-    const av = mSortCol==='нэр'?a.нэр:mSortCol==='код'?a.код:mSortCol==='ангилал'?a.ангилал:a.агуулах_нийт;
-    const bv = mSortCol==='нэр'?b.нэр:mSortCol==='код'?b.код:mSortCol==='ангилал'?b.ангилал:b.агуулах_нийт;
+    let av,bv;
+    if(mSortCol.startsWith('_wh_')){
+      const wk=mSortCol.slice(4);
+      av=(a.агуулах_дэлгэрэнгүй||{})[wk]||0;
+      bv=(b.агуулах_дэлгэрэнгүй||{})[wk]||0;
+    } else {
+      av=mSortCol==='нэр'?a.нэр:mSortCol==='код'?a.код:mSortCol==='ангилал'?a.ангилал:mSortCol==='гарал'?a.гарал:a.агуулах_нийт;
+      bv=mSortCol==='нэр'?b.нэр:mSortCol==='код'?b.код:mSortCol==='ангилал'?b.ангилал:mSortCol==='гарал'?b.гарал:b.агуулах_нийт;
+    }
     return typeof av==='string'?mSortDir*av.localeCompare(bv,'mn'):mSortDir*(av-bv);
   });
   return items;
 }
 
-function renderMissing() {
-  const items = getMFiltered();
-  const totalWh = items.reduce((s,r)=>s+r.агуулах_нийт,0);
-
-  document.getElementById('m-stats').innerHTML = `
+function renderMissing(){
+  const items=getMFiltered();
+  const totalWh=items.reduce((s,r)=>s+r.агуулах_нийт,0);
+  document.getElementById('m-stats').innerHTML=`
     <div class="stat-card"><div class="val">${items.length.toLocaleString()}</div><div class="lbl">Нийт бараа</div></div>
     <div class="stat-card"><div class="val" style="color:var(--green)">${Math.round(totalWh).toLocaleString()}</div><div class="lbl">Агуулах нийт тоо</div></div>
     <div class="stat-card"><div class="val" style="color:var(--amber);font-size:.95rem;padding-top:5px">${mBranch}</div><div class="lbl">Сонгосон салбар</div></div>`;
 
-  // Build thead
-  const hasCat = getMCats().length > 0;
-  const meta   = (DATA.meta||{})[mType]||{};
-  const whKeys = meta.warehouses || [];
+  const hasCat=getMCats().length>0;
+  const hasOrigin=getMOrigins().length>0;
+  const meta=(DATA.meta||{})[mType]||{};
+  const whKeys=meta.warehouses||[];
 
-  const hasOrigin = getMOrigins().length > 0;
-  const headCols = [
-    {k:'код',    l:'Код'},
-    {k:'нэр',    l:'Барааны нэр'},
-    ...(hasCat ? [{k:'ангилал',l:'Ангилал'},{k:'дэд',l:'Дэд ангилал'}] : []),
-    ...(hasOrigin ? [{k:'гарал',l:'Гарал'}] : []),
-    {k:'агуулах_нийт', l:'Агуулах нийт', num:true},
+  // Build headCols — warehouse cols are sortable (noSort:false)
+  const headCols=[
+    {k:'код',l:'Код'},
+    {k:'нэр',l:'Барааны нэр'},
+    ...(hasCat?[{k:'ангилал',l:'Ангилал'},{k:'дэд',l:'Дэд ангилал'}]:[]),
+    ...(hasOrigin?[{k:'гарал',l:'Гарал'}]:[]),
+    {k:'агуулах_нийт',l:'Агуулах нийт',num:true},
   ];
-  if (whView==='expanded') {
-    whKeys.forEach(wk => headCols.push({k:'_wh_'+wk, l:wk, num:true, noSort:true}));
+  if(whView==='expanded'){
+    whKeys.forEach(wk=>headCols.push({k:'_wh_'+wk,l:wk,num:true,noSort:false}));
   }
 
-  document.getElementById('m-thead-row').innerHTML = headCols.map(c=>`
+  document.getElementById('m-thead-row').innerHTML=headCols.map(c=>`
     <th class="${mSortCol===c.k&&!c.noSort?'sorted':''}" ${c.noSort?'':('onclick="mSort(\''+c.k+'\')"')} ${c.num?'style="text-align:right"':''}>
       ${c.l}${c.noSort?'':('<i class="arr">'+(mSortCol===c.k?(mSortDir>0?'↑':'↓'):'↕')+'</i>')}
     </th>`).join('');
 
-  const totalPages = Math.max(1,Math.ceil(items.length/MPAGE));
-  mPage = Math.min(mPage,totalPages);
-  const rows = items.slice((mPage-1)*MPAGE, mPage*MPAGE);
-
-  const tbody = document.getElementById('m-tbody');
-  if (!rows.length) {
+  const totalPages=Math.max(1,Math.ceil(items.length/MPAGE));
+  mPage=Math.min(mPage,totalPages);
+  const rows=items.slice((mPage-1)*MPAGE,mPage*MPAGE);
+  const tbody=document.getElementById('m-tbody');
+  if(!rows.length){
     tbody.innerHTML=`<tr><td colspan="${headCols.length}"><div class="empty"><div class="eico">✅</div>Бүх бараа салбарт байна</div></td></tr>`;
   } else {
-    tbody.innerHTML = rows.map(r => {
-      let tds = `<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
-      if (hasCat) tds += `<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
-      if (hasOrigin) tds += `<td><span style="font-size:.78rem;color:var(--muted)">${r.гарал||''}</span></td>`;
-      tds += `<td class="num"><span class="bq bq-wh">${Math.round(r.агуулах_нийт).toLocaleString()}</span></td>`;
-      if (whView==='expanded') {
-        const det = r.агуулах_дэлгэрэнгүй||{};
-        whKeys.forEach(wk=>{
-          const q=det[wk]||0;
-          tds+=`<td class="num"><span class="bq bq-wh-sm">${q>0?Math.round(q).toLocaleString():'-'}</span></td>`;
-        });
+    tbody.innerHTML=rows.map(r=>{
+      let tds=`<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
+      if(hasCat)tds+=`<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
+      if(hasOrigin)tds+=`<td><span style="font-size:.78rem;color:var(--muted)">${r.гарал||''}</span></td>`;
+      tds+=`<td class="num"><span class="bq bq-wh">${Math.round(r.агуулах_нийт).toLocaleString()}</span></td>`;
+      if(whView==='expanded'){
+        const det=r.агуулах_дэлгэрэнгүй||{};
+        whKeys.forEach(wk=>{const q=det[wk]||0;tds+=`<td class="num"><span class="bq bq-wh-sm">${q>0?Math.round(q).toLocaleString():'-'}</span></td>`;});
       }
       return `<tr>${tds}</tr>`;
     }).join('');
   }
-
-  // Update print header
-  const now = new Date().toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('ph-branch').textContent = mBranch + ' — үлдэгдэлгүй бараа';
-  document.getElementById('ph-date').textContent   = `${mType==='жижиг'?'Жижиг':'Том'} бараа | ${now} | Нийт: ${items.length} бараа`;
-
-  renderPg('m-pg', mPage, totalPages, p=>{mPage=p;renderMissing();});
+  const now=new Date().toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('ph-branch').textContent=mBranch+' — үлдэгдэлгүй бараа';
+  document.getElementById('ph-date').textContent=`${mType==='жижиг'?'Жижиг':'Том'} бараа | ${now} | Нийт: ${items.length} бараа`;
+  renderPg('m-pg',mPage,totalPages,p=>{mPage=p;renderMissing();});
 }
 
-// ═══════════════════════════════════════════════════════
-//  IMBALANCE PANEL
-// ═══════════════════════════════════════════════════════
-let iCatDD=null, iSubDD=null, iBranchDD=null;
-
-function initImbalance() {
-  iCatDD    = buildMS('ms-icat',   'Бүх ангилал',     getICats(),    sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
-  iSubDD    = buildMS('ms-isub',   'Бүх дэд ангилал', getISubs(),    sel=>{iSubs=sel;iPage=1;renderImbalance();});
-  iBranchDD = buildMS('ms-ibranch','Бүх салбар',       BRANCHES,      sel=>{iBranches=sel;iPage=1;renderImbalance();});
-  iOriginDD = buildMS('ms-iorigin','Бүх гарал',        getIOrigins(), sel=>{iOrigins=sel;iPage=1;renderImbalance();});
+let iCatDD=null,iSubDD=null,iBranchDD=null,iOriginDD=null;
+function initImbalance(){
+  iCatDD=buildMS('ms-icat','Бүх ангилал',getICats(),sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
+  iSubDD=buildMS('ms-isub','Бүх дэд ангилал',getISubs(),sel=>{iSubs=sel;iPage=1;renderImbalance();});
+  iBranchDD=buildMS('ms-ibranch','Бүх салбар',BRANCHES,sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  iOriginDD=buildMS('ms-iorigin','Бүх гарал',getIOrigins(),sel=>{iOrigins=sel;iPage=1;renderImbalance();});
 }
-
-function getICats()    { return ((DATA.meta||{})[iType]||{}).categories||[]; }
-function getIOrigins() { return ((DATA.meta||{})[iType]||{}).origins||[]; }
-function getISubs(cats) {
-  const sm = ((DATA.meta||{})[iType]||{}).subcategories||{};
-  if (!cats||cats.size===0) return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
-  let out=[]; cats.forEach(c=>{if(sm[c])out=out.concat(sm[c]);}); return [...new Set(out)].sort();
+function getICats(){return((DATA.meta||{})[iType]||{}).categories||[];}
+function getIOrigins(){return((DATA.meta||{})[iType]||{}).origins||[];}
+function getISubs(cats){
+  const sm=((DATA.meta||{})[iType]||{}).subcategories||{};
+  if(!cats||cats.size===0)return Object.values(sm).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
+  let out=[];cats.forEach(c=>{if(sm[c])out=out.concat(sm[c]);});return[...new Set(out)].sort();
 }
-function updateISubOpts() { if(iSubDD)iSubDD.dd._setOptions(getISubs(iCats),true); }
-
-function setImbType(t) {
-  iType=t; iPage=1; iCats=new Set(); iSubs=new Set(); iBranches=new Set(); iOrigins=new Set();
-  document.getElementById('imb-ji') .classList.toggle('active',t==='жижиг');
+function updateISubOpts(){if(iSubDD)iSubDD.dd._setOptions(getISubs(iCats),true);}
+function setImbType(t){
+  iType=t;iPage=1;iCats=new Set();iSubs=new Set();iBranches=new Set();iOrigins=new Set();
+  document.getElementById('imb-ji').classList.toggle('active',t==='жижиг');
   document.getElementById('imb-tom').classList.toggle('active',t==='том');
   document.getElementById('imb-sel').classList.toggle('active',t==='сэлбэг');
-  iCatDD    = buildMS('ms-icat',   'Бүх ангилал',     getICats(),    sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
-  iSubDD    = buildMS('ms-isub',   'Бүх дэд ангилал', getISubs(),    sel=>{iSubs=sel;iPage=1;renderImbalance();});
-  iBranchDD = buildMS('ms-ibranch','Бүх салбар',       BRANCHES,      sel=>{iBranches=sel;iPage=1;renderImbalance();});
-  iOriginDD = buildMS('ms-iorigin','Бүх гарал',        getIOrigins(), sel=>{iOrigins=sel;iPage=1;renderImbalance();});
+  iCatDD=buildMS('ms-icat','Бүх ангилал',getICats(),sel=>{iCats=sel;updateISubOpts();iPage=1;renderImbalance();});
+  iSubDD=buildMS('ms-isub','Бүх дэд ангилал',getISubs(),sel=>{iSubs=sel;iPage=1;renderImbalance();});
+  iBranchDD=buildMS('ms-ibranch','Бүх салбар',BRANCHES,sel=>{iBranches=sel;iPage=1;renderImbalance();});
+  iOriginDD=buildMS('ms-iorigin','Бүх гарал',getIOrigins(),sel=>{iOrigins=sel;iPage=1;renderImbalance();});
   renderImbalance();
 }
-
-// setIWhView removed — imbalance panel no longer shows warehouse columns
-function iFilter() { iPage=1; renderImbalance(); }
-
-function getIFiltered() {
-  const q = document.getElementById('i-search').value.toLowerCase();
-  let items = (DATA.imbalance[iType]||[]).slice();
-  if (q) items=items.filter(r=>r.нэр.toLowerCase().includes(q)||r.код.toLowerCase().includes(q));
-  if (iCats.size)     items=items.filter(r=>iCats.has(r.ангилал));
-  if (iSubs.size)     items=items.filter(r=>iSubs.has(r.дэд));
-  if (iOrigins.size)  items=items.filter(r=>iOrigins.has(r.гарал));
-  if (iBranches.size) items=items.filter(r=>[...iBranches].some(b=>r[b]&&r[b]>0));
-  items.sort((a,b)=>{
-    const av=a[iSortCol]||0, bv=b[iSortCol]||0;
-    return typeof av==='string'?iSortDir*av.localeCompare(bv,'mn'):iSortDir*(av-bv);
-  });
+function iFilter(){iPage=1;renderImbalance();}
+function getIFiltered(){
+  const q=document.getElementById('i-search').value.toLowerCase();
+  let items=(DATA.imbalance[iType]||[]).slice();
+  if(q)items=items.filter(r=>r.нэр.toLowerCase().includes(q)||r.код.toLowerCase().includes(q));
+  if(iCats.size)items=items.filter(r=>iCats.has(r.ангилал));
+  if(iSubs.size)items=items.filter(r=>iSubs.has(r.дэд));
+  if(iOrigins.size)items=items.filter(r=>iOrigins.has(r.гарал));
+  if(iBranches.size)items=items.filter(r=>[...iBranches].some(b=>r[b]&&r[b]>0));
+  items.sort((a,b)=>{const av=a[iSortCol]||0,bv=b[iSortCol]||0;return typeof av==='string'?iSortDir*av.localeCompare(bv,'mn'):iSortDir*(av-bv);});
   return items;
 }
-
 function iSort(col){if(iSortCol===col)iSortDir*=-1;else{iSortCol=col;iSortDir=-1;}iPage=1;renderImbalance();}
-
-function renderImbalance() {
-  const items = getIFiltered();
-  const hasCat = getICats().length>0;
-
-  // Stats — show dominant branch breakdown
-  const domCount = {};
-  BRANCHES.forEach(b=>domCount[b]=0);
-  items.forEach(r=>{ if(r.давамгай) domCount[r.давамгай]=(domCount[r.давамгай]||0)+1; });
-  const topDom = Object.entries(domCount).sort((a,b)=>b[1]-a[1]).filter(e=>e[1]>0);
-
+function renderImbalance(){
+  const items=getIFiltered();
+  const hasCat=getICats().length>0;
+  const domCount={};BRANCHES.forEach(b=>domCount[b]=0);
+  items.forEach(r=>{if(r.давамгай)domCount[r.давамгай]=(domCount[r.давамгай]||0)+1;});
+  const topDom=Object.entries(domCount).sort((a,b)=>b[1]-a[1]).filter(e=>e[1]>0);
   document.getElementById('i-stats').innerHTML=`
     <div class="stat-card"><div class="val" style="color:var(--amber)">${items.length.toLocaleString()}</div><div class="lbl">Тэнцвэргүй бараа</div></div>
-    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.75rem;padding-top:4px;line-height:1.4">
-      70%+ салбарт · агуулах ≤10%</div><div class="lbl">Шалгуур</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--muted);font-size:.75rem;padding-top:4px;line-height:1.4">70%+ салбарт · агуулах ≤10%</div><div class="lbl">Шалгуур</div></div>
     ${topDom.slice(0,3).map(([b,n])=>`<div class="stat-card"><div class="val" style="color:var(--red);font-size:1.1rem">${n}</div><div class="lbl">${b.replace(' салбар','')} давамгай</div></div>`).join('')}`;
-
-  // Build thead — NO warehouse columns
-  const activeBranches = iBranches.size>0 ? BRANCHES.filter(b=>iBranches.has(b)) : BRANCHES;
-  const th = (col,lbl,num) => {
-    const sorted = iSortCol===col;
-    const arr = sorted?(iSortDir>0?'↑':'↓'):'↕';
-    return `<th class="${sorted?'sorted':''} ${num?'num':''}" onclick="iSort('${col}')">${lbl}<i class="arr">${arr}</i></th>`;
-  };
-  let thHTML = th('код','Код') + th('нэр','Барааны нэр');
-  if (hasCat) thHTML += th('ангилал','Ангилал') + th('дэд','Дэд ангилал');
-  activeBranches.forEach(b=>{
-    const short = b.replace(' салбар','').replace('Алтан-Орд','А-Орд').replace('Чулуун овоо','Чулуун');
-    thHTML += th(b, short, true);
-  });
-  thHTML += th('салбар_нийт','Салбар нийт',true);
+  const activeBranches=iBranches.size>0?BRANCHES.filter(b=>iBranches.has(b)):BRANCHES;
+  const th=(col,lbl,num)=>{const sorted=iSortCol===col;const arr=sorted?(iSortDir>0?'↑':'↓'):'↕';return`<th class="${sorted?'sorted':''} ${num?'num':''}" onclick="iSort('${col}')">${lbl}<i class="arr">${arr}</i></th>`;};
+  let thHTML=th('код','Код')+th('нэр','Барааны нэр');
+  if(hasCat)thHTML+=th('ангилал','Ангилал')+th('дэд','Дэд ангилал');
+  activeBranches.forEach(b=>{const short=b.replace(' салбар','').replace('Алтан-Орд','А-Орд').replace('Чулуун овоо','Чулуун');thHTML+=th(b,short,true);});
+  thHTML+=th('салбар_нийт','Салбар нийт',true);
   document.getElementById('i-thead-row').innerHTML=thHTML;
-
   const totalPages=Math.max(1,Math.ceil(items.length/IPAGE));
   iPage=Math.min(iPage,totalPages);
   const rows=items.slice((iPage-1)*IPAGE,iPage*IPAGE);
-
   const tbody=document.getElementById('i-tbody');
   if(!rows.length){
     const cols=2+(hasCat?2:0)+activeBranches.length+1;
     tbody.innerHTML=`<tr><td colspan="${cols}"><div class="empty"><div class="eico">⚖️</div>Тэнцвэргүй бараа олдсонгүй</div></td></tr>`;
   } else {
     tbody.innerHTML=rows.map(r=>{
-      const dominant = r.давамгай || '';
+      const dominant=r.давамгай||'';
       let tds=`<td class="code-cell">${r.код}</td><td>${r.нэр}</td>`;
       if(hasCat)tds+=`<td>${r.ангилал?`<span class="cat-pill">${r.ангилал}</span>`:''}</td><td>${r.дэд?`<span class="subcat-pill">${r.дэд}</span>`:''}</td>`;
-      activeBranches.forEach(b=>{
-        const qty=r[b]||0;
-        const isDom = b===dominant && qty>0;
-        if(isDom){
-          tds+=`<td class="num"><span class="imb-high">${Math.round(qty).toLocaleString()}</span></td>`;
-        } else {
-          tds+=`<td class="num ${qty===0?'imb-low':''}">${qty>0?Math.round(qty).toLocaleString():'-'}</td>`;
-        }
+      activeBranches.forEach(b=>{const qty=r[b]||0;const isDom=b===dominant&&qty>0;
+        if(isDom){tds+=`<td class="num"><span class="imb-high">${Math.round(qty).toLocaleString()}</span></td>`;}
+        else{tds+=`<td class="num ${qty===0?'imb-low':''}">${qty>0?Math.round(qty).toLocaleString():'-'}</td>`;}
       });
-      const tb = r.салбар_нийт || BRANCHES.reduce((s,b)=>s+(r[b]||0),0);
+      const tb=r.салбар_нийт||BRANCHES.reduce((s,b)=>s+(r[b]||0),0);
       tds+=`<td class="num tot-cell">${Math.round(tb).toLocaleString()}</td>`;
-      return `<tr>${tds}</tr>`;
+      return`<tr>${tds}</tr>`;
     }).join('');
   }
-
-  document.getElementById('ph-imb-date').textContent=
-    `${iType==='жижиг'?'Жижиг':'Том'} бараа | ${new Date().toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'})} | Нийт: ${items.length} бараа`;
-
+  document.getElementById('ph-imb-date').textContent=`${iType==='жижиг'?'Жижиг':'Том'} бараа | ${new Date().toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'})} | Нийт: ${items.length} бараа`;
   renderPg('i-pg',iPage,totalPages,p=>{iPage=p;renderImbalance();});
 }
 
-// ═══════════════════════════════════════════════════════
-//  PAGINATION
-// ═══════════════════════════════════════════════════════
 function renderPg(id,page,total,cb){
   const el=document.getElementById(id);
   if(total<=1){el.innerHTML='';return;}
   const go=p=>`onclick="(${cb})(${p})"`;
   let h=`<button class="pg" ${page<=1?'disabled':''} ${go(1)}>«</button>`;
-  h   +=`<button class="pg" ${page<=1?'disabled':''} ${go(page-1)}>‹</button>`;
+  h+=`<button class="pg" ${page<=1?'disabled':''} ${go(page-1)}>‹</button>`;
   const s=Math.max(1,page-2),e=Math.min(total,page+2);
   if(s>1)h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;
   for(let i=s;i<=e;i++)h+=`<button class="pg ${i===page?'active':''}" ${go(i)}>${i}</button>`;
@@ -813,33 +570,23 @@ function renderPg(id,page,total,cb){
   el.innerHTML=h;
 }
 
-// ═══════════════════════════════════════════════════════
-//  EXPORT — MISSING  (Excel)
-// ═══════════════════════════════════════════════════════
-function exportExcel() {
-  const items = getMFiltered();
-  const now   = new Date();
-  const dateStr = now.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
-  const fileDate= now.toISOString().slice(0,10);
-
-  const meta  = (DATA.meta||{})[mType]||{};
-  const whKeys= meta.warehouses||[];
-  const hasCat= getMCats().length>0;
-
-  // Title rows
-  const title1 = [`${mBranch} — Агуулахад байгаа боловч салбарт байхгүй бараа`];
-  const title2 = [`${mType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа`];
-  const blank  = [];
-
-  // Header row
-  const hasOrigin = getMOrigins().length>0;
-  const header = ['Барааны код','Барааны нэр'];
+function exportExcel(){
+  const items=getMFiltered();
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
+  const fileDate=now.toISOString().slice(0,10);
+  const meta=(DATA.meta||{})[mType]||{};
+  const whKeys=meta.warehouses||[];
+  const hasCat=getMCats().length>0;
+  const hasOrigin=getMOrigins().length>0;
+  const title1=[`${mBranch} — Агуулахад байгаа боловч салбарт байхгүй бараа`];
+  const title2=[`${mType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа`];
+  const header=['Барааны код','Барааны нэр'];
   if(hasCat)header.push('Ангилал','Дэд ангилал');
   if(hasOrigin)header.push('Гарал үүсэл');
   header.push('Агуулах нийт');
   if(whView==='expanded')whKeys.forEach(w=>header.push(w));
-
-  const dataRows = items.map(r=>{
+  const dataRows=items.map(r=>{
     const row=[r.код,r.нэр];
     if(hasCat)row.push(r.ангилал||'',r.дэд||'');
     if(hasOrigin)row.push(r.гарал||'');
@@ -847,192 +594,102 @@ function exportExcel() {
     if(whView==='expanded'){const d=r.агуулах_дэлгэрэнгүй||{};whKeys.forEach(w=>row.push(d[w]||0));}
     return row;
   });
-
-  const ws = XLSX.utils.aoa_to_sheet([title1,title2,blank,header,...dataRows]);
-
-  // Style widths
-  ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),{wch:14},...(whView==='expanded'?whKeys.map(()=>({wch:14})):[]  )];
+  const ws=XLSX.utils.aoa_to_sheet([title1,title2,[],header,...dataRows]);
+  ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),...(hasOrigin?[{wch:12}]:[]),{wch:14},...(whView==='expanded'?whKeys.map(()=>({wch:14})):[])];
   ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:header.length-1}},{s:{r:1,c:0},e:{r:1,c:header.length-1}}];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, mBranch.substring(0,31));
-  XLSX.writeFile(wb, `${mBranch}_${mType}_${fileDate}.xlsx`);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,mBranch.substring(0,31));
+  XLSX.writeFile(wb,`${mBranch}_${mType}_${fileDate}.xlsx`);
 }
-
-// ═══════════════════════════════════════════════════════
-//  EXPORT — MISSING (PDF via print)
-// ═══════════════════════════════════════════════════════
-function exportPDF() {
-  document.getElementById('print-title-missing').style.display='block';
-  window.print();
-  setTimeout(()=>document.getElementById('print-title-missing').style.display='',500);
-}
-
-// ═══════════════════════════════════════════════════════
-//  EXPORT — IMBALANCE (Excel)
-// ═══════════════════════════════════════════════════════
-function exportImbExcel() {
-  const items = getIFiltered();
-  const now   = new Date();
+function exportPDF(){document.getElementById('print-title-missing').style.display='block';window.print();setTimeout(()=>document.getElementById('print-title-missing').style.display='',500);}
+function exportImbExcel(){
+  const items=getIFiltered();
+  const now=new Date();
   const dateStr=now.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric'});
   const fileDate=now.toISOString().slice(0,10);
   const hasCat=getICats().length>0;
   const activeBranches=iBranches.size>0?BRANCHES.filter(b=>iBranches.has(b)):BRANCHES;
-
   const title1=[`Тэнцвэргүй үлдэгдэл — салбар хоорондын тэнцвэргүй хуваарилалт`];
   const title2=[`${iType==='жижиг'?'Жижиг':'Том'} бараа | ${dateStr} | Нийт: ${items.length} бараа | Шалгуур: нэг салбарт 70%+ · агуулах ≤10%`];
   const header=['Барааны код','Барааны нэр'];
   if(hasCat)header.push('Ангилал','Дэд ангилал');
   activeBranches.forEach(b=>header.push(b));
   header.push('Салбар нийт','Давамгай салбар');
-
   const dataRows=items.map(r=>{
     const row=[r.код,r.нэр];
     if(hasCat)row.push(r.ангилал||'',r.дэд||'');
     activeBranches.forEach(b=>row.push(r[b]||0));
     const tb=r.салбар_нийт||activeBranches.reduce((s,b)=>s+(r[b]||0),0);
-    row.push(tb, r.давамгай||'');
+    row.push(tb,r.давамгай||'');
     return row;
   });
-
   const ws=XLSX.utils.aoa_to_sheet([title1,title2,[],header,...dataRows]);
   ws['!cols']=[{wch:14},{wch:40},...(hasCat?[{wch:18},{wch:22}]:[]),...activeBranches.map(()=>({wch:12})),{wch:14},{wch:20}];
   ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:header.length-1}},{s:{r:1,c:0},e:{r:1,c:header.length-1}}];
-
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Тэнцвэргүй үлдэгдэл');
   XLSX.writeFile(wb,`Тэнцвэргүй_${iType}_${fileDate}.xlsx`);
 }
+function exportImbPDF(){document.getElementById('print-title-imb').style.display='block';window.print();setTimeout(()=>document.getElementById('print-title-imb').style.display='',500);}
 
-function exportImbPDF() {
-  document.getElementById('print-title-imb').style.display='block';
-  window.print();
-  setTimeout(()=>document.getElementById('print-title-imb').style.display='',500);
-}
-
-// ═══════════════════════════════════════════════════════
-//  AUTH  —  SHA-256 via Web Crypto API (no library needed)
-// ═══════════════════════════════════════════════════════
-const SESSION_KEY = 'erp_auth_v1';
-const SESSION_TTL = 8 * 60 * 60 * 1000; // 8 hours
-let AUTH_HASH = null;   // loaded from auth.json
-
-async function sha256(str) {
-  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+const SESSION_KEY='erp_auth_v1';
+const SESSION_TTL=8*60*60*1000;
+let AUTH_HASH=null;
+async function sha256(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
-function isUnlocked() {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return false;
-    const { token, ts } = JSON.parse(raw);
-    if (Date.now() - ts > SESSION_TTL) { localStorage.removeItem(SESSION_KEY); return false; }
-    return token === AUTH_HASH;
-  } catch(e) { return false; }
+function isUnlocked(){
+  try{const raw=localStorage.getItem(SESSION_KEY);if(!raw)return false;
+    const{token,ts}=JSON.parse(raw);
+    if(Date.now()-ts>SESSION_TTL){localStorage.removeItem(SESSION_KEY);return false;}
+    return token===AUTH_HASH;}catch(e){return false;}
 }
-
-function showLogin() {
+function showLogin(){
   document.getElementById('login-screen').classList.remove('gone');
   document.getElementById('main-content').classList.add('hidden');
-  setTimeout(()=>document.getElementById('pw-input').focus(), 80);
+  setTimeout(()=>document.getElementById('pw-input').focus(),80);
 }
-
-function showDashboard() {
-  document.getElementById('login-screen').classList.add('gone');
-  document.getElementById('main-content').classList.remove('hidden');
+function lockSession(){localStorage.removeItem(SESSION_KEY);document.getElementById('pw-input').value='';document.getElementById('login-err').textContent='';showLogin();}
+function toggleEye(){
+  const inp=document.getElementById('pw-input');const eye=document.getElementById('pw-eye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🙈';}
+  else{inp.type='password';eye.textContent='👁️';}inp.focus();
 }
-
-function lockSession() {
-  localStorage.removeItem(SESSION_KEY);
-  document.getElementById('pw-input').value = '';
-  document.getElementById('login-err').textContent = '';
-  showLogin();
-}
-
-function toggleEye() {
-  const inp = document.getElementById('pw-input');
-  const eye = document.getElementById('pw-eye');
-  if (inp.type === 'password') { inp.type='text';  eye.textContent='🙈'; }
-  else                         { inp.type='password'; eye.textContent='👁️'; }
-  inp.focus();
-}
-
-async function doLogin() {
-  const inp = document.getElementById('pw-input');
-  const btn = document.getElementById('login-btn');
-  const err = document.getElementById('login-err');
-  const pw  = inp.value;
-  if (!pw) { err.textContent='Нууц үг оруулна уу'; return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Шалгаж байна…';
-
-  const hash = await sha256(pw);
-  if (hash === AUTH_HASH) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ token: AUTH_HASH, ts: Date.now() }));
-    err.textContent = '';
-    inp.value = '';
-    inp.type  = 'password';
-    document.getElementById('pw-eye').textContent = '👁️';
+async function doLogin(){
+  const inp=document.getElementById('pw-input');const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-err');const pw=inp.value;
+  if(!pw){err.textContent='Нууц үг оруулна уу';return;}
+  btn.disabled=true;btn.textContent='Шалгаж байна…';
+  const hash=await sha256(pw);
+  if(hash===AUTH_HASH){
+    localStorage.setItem(SESSION_KEY,JSON.stringify({token:AUTH_HASH,ts:Date.now()}));
+    err.textContent='';inp.value='';inp.type='password';
+    document.getElementById('pw-eye').textContent='👁️';
     showDashboard();
   } else {
-    err.textContent = '❌ Нууц үг буруу байна';
-    inp.classList.add('shake');
-    inp.value = '';
-    inp.focus();
-    setTimeout(()=>inp.classList.remove('shake'), 400);
+    err.textContent='❌ Нууц үг буруу байна';inp.classList.add('shake');inp.value='';inp.focus();
+    setTimeout(()=>inp.classList.remove('shake'),400);
   }
-  btn.disabled = false;
-  btn.textContent = 'Нэвтрэх';
+  btn.disabled=false;btn.textContent='Нэвтрэх';
 }
 
-// ═══════════════════════════════════════════════════════
-//  BOOT
-// ═══════════════════════════════════════════════════════
-async function boot() {
-  // 1. Load auth config
-  try {
-    const ar = await fetch('data/auth.json?v=' + Date.now());
-    const ac = await ar.json();
-    AUTH_HASH = ac.password_hash;
-  } catch(e) {
-    console.warn('auth.json not found — running without password protection');
-    AUTH_HASH = null;
-  }
+let _inited=false;
+function showDashboard(){
+  document.getElementById('login-screen').classList.add('gone');
+  document.getElementById('main-content').classList.remove('hidden');
+  if(!_inited){_inited=true;initMissing();initImbalance();}
+}
 
-  // 2. Load stock data
-  try {
-    const res = await fetch('data/stock.json?v=' + Date.now());
-    if (!res.ok) throw new Error(res.statusText);
-    DATA = await res.json();
-  } catch(e) {
-    document.getElementById('loader').innerHTML =
-      `<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>${e.message}</p>`;
-    return;
-  }
-
-  if (DATA.generated)
-    document.getElementById('updated-at').textContent = 'Шинэчлэгдсэн: ' + DATA.generated;
-
+async function boot(){
+  try{const ar=await fetch('data/auth.json?v='+Date.now());const ac=await ar.json();AUTH_HASH=ac.password_hash;}
+  catch(e){console.warn('auth.json not found');AUTH_HASH=null;}
+  try{const res=await fetch('data/stock.json?v='+Date.now());if(!res.ok)throw new Error(res.statusText);DATA=await res.json();}
+  catch(e){document.getElementById('loader').innerHTML=`<p style="color:var(--red)">❌ stock.json ачаалж чадсангүй:<br>${e.message}</p>`;return;}
+  if(DATA.generated)document.getElementById('updated-at').textContent='Шинэчлэгдсэн: '+DATA.generated;
   document.getElementById('loader').classList.add('gone');
-
-  // 3. Auth gate
-  if (AUTH_HASH && !isUnlocked()) {
-    showLogin();
-  } else {
-    showDashboard();
-  }
+  if(AUTH_HASH&&!isUnlocked()){showLogin();}else{showDashboard();}
 }
-
-// Init dashboard only once after successful login
-let _inited = false;
-function showDashboard() {
-  document.getElementById('login-screen').classList.add('gone');
-  document.getElementById('main-content').classList.remove('hidden');
-  if (!_inited) { _inited=true; initMissing(); initImbalance(); }
-}
-
 boot();
 </script>
 </body>
