@@ -1,6 +1,543 @@
 <!doctype html>
-<html lang="mn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chiglel LLC - Product catalog</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>
-:root{--bg:#f5f3ee;--surface:#fff;--border:#ddd9d0;--text:#1a1a18;--muted:#6b6860;--light:#9b9890;--accent:#c8330a;--accent-bg:#fdf0ec;--blue:#1a4a8a;--blue-bg:#eef3fa;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif}*{box-sizing:border-box}body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text)}header{height:56px;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:10}.brand{font-family:var(--mono);font-weight:500}.brand span{color:var(--accent);font-size:20px}.toplinks{display:flex;gap:14px;align-items:center}.toplinks a{color:rgba(255,255,255,.65);font:12px var(--mono);text-decoration:none}.admin{background:var(--accent);color:#fff!important;padding:7px 13px;border-radius:4px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 32px;background:var(--surface);border-bottom:1px solid var(--border)}input,select,button{font-family:var(--sans)}.search{flex:1;min-width:240px;max-width:430px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}select,.toggle{padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--muted)}.toggle{cursor:pointer}.toggle.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}.stats{margin-left:auto;color:var(--muted);font:12px var(--mono)}.layout{display:flex}.sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);padding:18px 0;position:sticky;top:89px;height:calc(100vh - 89px);overflow:auto}.side-label{padding:8px 20px 6px;color:var(--light);font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase}.cat{display:block;width:100%;padding:8px 20px;text-align:left;border:0;background:transparent;color:var(--muted);cursor:pointer;border-left:2px solid transparent}.cat:hover{background:var(--bg);color:var(--text)}.cat.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent);font-weight:500}.count{float:right;color:var(--light);font:10px var(--mono)}main{flex:1;padding:24px 28px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}.card{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;transition:.15s}.card:hover{border-color:var(--accent);box-shadow:0 4px 16px #0001;transform:translateY(-1px)}.row{display:flex;justify-content:space-between;gap:8px}.code{font:10px var(--mono);color:var(--light)}.badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.badge{font:500 9px var(--mono);padding:2px 6px;border-radius:3px;letter-spacing:.05em}.mn{background:#e8f3ec;color:#2d7a4f}.cn{background:#fff3e8;color:#b85a00}.pdf{background:var(--blue-bg);color:var(--blue)}.abc{background:#fff8e8;color:#8b6000}.name{min-height:40px;margin:12px 0;font-size:13px;font-weight:500;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.foot{border-top:1px solid var(--bg);padding-top:10px;align-items:center}.price{font:500 14px var(--mono)}.price span{font-size:10px;color:var(--light)}.sub{max-width:110px;color:var(--light);font-size:11px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.empty,.loading{text-align:center;padding:80px 20px;color:var(--muted)}.pages{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:28px 0}.pg{min-width:34px;height:34px;border:1px solid var(--border);background:var(--surface);border-radius:6px;color:var(--muted);cursor:pointer}.pg.active{background:var(--accent);border-color:var(--accent);color:white}.pg:disabled{opacity:.35;cursor:default}@media(max-width:760px){header,.toolbar{padding-left:16px;padding-right:16px}.sidebar{display:none}main{padding:16px}.toplinks a:not(.admin){display:none}}
-</style></head><body><header><div class="brand"><span>C</span> CHIGLEL LLC - PRODUCT CATALOG</div><div class="toplinks"><a href="https://www.chiglel.mn" target="_blank" rel="noopener">chiglel.mn ?</a><a class="admin" href="admin/index.html">Admin</a></div></header><div class="toolbar"><input id="q" class="search" placeholder="Search name, code, model..."><select id="origin"><option value="">All origins</option><option value="&#1052;&#1086;&#1085;&#1075;&#1086;&#1083;">Mongolia</option><option value="&#1061;&#1103;&#1090;&#1072;&#1076;">China</option></select><select id="abc"><option value="">All ABC</option><option>A</option><option>B</option><option>C</option></select><button id="manual" class="toggle" type="button">Has PDF</button><div id="stats" class="stats">Loading...</div></div><div class="layout"><aside id="side" class="sidebar"><div class="side-label">Category</div></aside><main><div id="list" class="loading">Loading products...</div><div id="pages" class="pages"></div></main></div><script>
-let all=[],filtered=[],page=1,cat=null,onlyManual=false;const SIZE=48;const $=id=>document.getElementById(id);const t=(tag,text,cls)=>{const e=document.createElement(tag);if(cls)e.className=cls;e.textContent=String(text??'');return e};function productHref(code){const u=new URL('product.html',location.href);u.searchParams.set('code',String(code));return u.href}function badge(parent,label,cls){if(label)parent.appendChild(t('span',label,'badge '+cls))}async function load(){try{all=await (await fetch('data/products.json')).json();buildSide();apply()}catch(e){empty('No products found','Try changing the search or filters')}}function buildSide(){const map={};all.forEach(p=>map[p.category||'?']=(map[p.category||'?']||0)+1);const side=$('side');const allBtn=t('button','All','cat active');allBtn.type='button';allBtn.appendChild(t('span',all.length,'count'));allBtn.onclick=()=>setCat(null,allBtn);side.appendChild(allBtn);Object.entries(map).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{const b=t('button',k,'cat');b.type='button';b.appendChild(t('span',v,'count'));b.onclick=()=>setCat(k,b);side.appendChild(b)})}function setCat(next,btn){document.querySelectorAll('.cat').forEach(b=>b.classList.remove('active'));btn.classList.add('active');cat=next;page=1;apply()}function apply(){const q=$('q').value.trim().toLowerCase(),origin=$('origin').value,abc=$('abc').value;filtered=all.filter(p=>{if(cat&&p.category!==cat)return false;if(origin&&p.origin!==origin)return false;if(abc&&p.abc!==abc)return false;if(onlyManual&&!p.manual_url)return false;if(q&&!([p.name,p.code,p.model,p.brand,p.subcategory].filter(Boolean).join(' ').toLowerCase().includes(q)))return false;return true});$('stats').textContent=filtered.length+' / '+all.length+' products';render();pages()}function empty(a,b){const root=$('list');root.textContent='';root.className='empty';root.append(t('h3',a),t('p',b))}function render(){const root=$('list');root.textContent='';root.className='';const slice=filtered.slice((page-1)*SIZE,page*SIZE);if(!slice.length)return empty('No products found','Try changing the search or filters');const grid=document.createElement('div');grid.className='grid';slice.forEach(p=>{const a=document.createElement('a');a.className='card';a.href=productHref(p.code);const row=document.createElement('div');row.className='row';row.appendChild(t('div','#'+p.code,'code'));const badges=document.createElement('div');badges.className='badges';if(p.origin==='\u041c\u043e\u043d\u0433\u043e\u043b')badge(badges,'MN','mn');else if(p.origin==='\u0425\u044f\u0442\u0430\u0434')badge(badges,'CN','cn');if(p.manual_url)badge(badges,'PDF','pdf');if(p.abc)badge(badges,p.abc,'abc');row.appendChild(badges);a.appendChild(row);a.appendChild(t('div',p.name||'-','name'));const foot=document.createElement('div');foot.className='row foot';const price=t('div','', 'price');if(p.price){price.textContent=Number(p.price).toLocaleString();price.appendChild(t('span',' MNT'))}else price.appendChild(t('span','No price'));foot.append(price,t('div',p.subcategory||'','sub'));a.appendChild(foot);grid.appendChild(a)});root.appendChild(grid)}function pages(){const total=Math.ceil(filtered.length/SIZE),root=$('pages');root.textContent='';if(total<=1)return;const mk=(label,p,dis,act)=>{const b=t('button',label,'pg'+(act?' active':''));b.type='button';b.disabled=dis;b.onclick=()=>{page=p;render();pages()};root.appendChild(b)};mk('<',page-1,page===1);for(let i=Math.max(1,page-2);i<=Math.min(total,page+2);i++)mk(i,i,false,i===page);mk('>',page+1,page===total)}$('q').oninput=()=>{page=1;apply()};$('origin').onchange=()=>{page=1;apply()};$('abc').onchange=()=>{page=1;apply()};$('manual').onclick=()=>{onlyManual=!onlyManual;$('manual').classList.toggle('active',onlyManual);page=1;apply()};load();
-</script></body></html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chiglel LLC - Product Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ee;--surface:#fff;--border:#ddd9d0;--text:#1a1a18;
+  --muted:#6b6860;--light:#9b9890;--accent:#c8330a;--accent-bg:#fdf0ec;
+  --green:#2d7a4f;--green-bg:#e8f3ec;
+  --blue:#1a4a8a;--blue-bg:#eef3fa;
+  --orange:#b85a00;--orange-bg:#fff3e8;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text)}
+
+/* HEADER */
+header{height:56px;background:var(--text);color:#fff;display:flex;align-items:center;
+  justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:10}
+.brand{font-family:var(--mono);font-weight:500;letter-spacing:.03em}
+.brand span{color:var(--accent);font-size:20px}
+.toplinks{display:flex;gap:12px;align-items:center}
+.toplinks a{color:rgba(255,255,255,.65);font:12px var(--mono);text-decoration:none}
+.toplinks a:hover{color:#fff}
+.admin-link{background:var(--accent);color:#fff!important;padding:7px 13px;border-radius:4px}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:14px 32px;background:var(--surface);border-bottom:1px solid var(--border)}
+.search-wrap{position:relative;flex:1;min-width:240px;max-width:400px}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg);font-family:var(--sans);font-size:13.5px;outline:none}
+.search:focus{border-color:var(--accent)}
+
+/* ORIGIN BUTTONS */
+.origin-group{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.origin-label{font:10px var(--mono);color:var(--light);letter-spacing:.06em;text-transform:uppercase;margin-right:2px}
+.obtn{padding:6px 11px;border:1px solid var(--border);border-radius:5px;background:var(--bg);
+  font:12px var(--sans);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.obtn:hover{border-color:var(--text);color:var(--text)}
+.obtn.active{font-weight:600;border-width:2px}
+.obtn[data-o="Монгол"].active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.obtn[data-o="Хятад"].active{background:var(--orange-bg);border-color:var(--orange);color:var(--orange)}
+.obtn[data-o="Солонгос"].active{background:#eef3fa;border-color:#1a4a8a;color:#1a4a8a}
+.obtn[data-o="Турк"].active{background:#fef0f0;border-color:#c0392b;color:#c0392b}
+.obtn[data-o="Орос"].active{background:#fff8e8;border-color:#8b6000;color:#8b6000}
+
+/* ABC BUTTONS */
+.abc-group{display:flex;gap:4px}
+.abcbtn{padding:6px 10px;border:1px solid var(--border);border-radius:5px;background:var(--bg);
+  font:600 11px var(--mono);color:var(--muted);cursor:pointer;transition:all .15s}
+.abcbtn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+
+/* TOGGLE BUTTONS */
+.toggle{padding:8px 12px;border:1px solid var(--border);border-radius:5px;background:var(--bg);
+  font:12px var(--sans);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.toggle.active{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+
+/* EXPORT BUTTON */
+.export-btn{padding:8px 14px;border:1px solid var(--green);border-radius:5px;
+  background:var(--green-bg);font:600 12px var(--sans);color:var(--green);
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.export-btn:hover{background:var(--green);color:#fff}
+
+.stats{margin-left:auto;color:var(--muted);font:12px var(--mono);white-space:nowrap}
+.stats strong{color:var(--text)}
+
+/* LAYOUT */
+.layout{display:flex}
+
+/* SIDEBAR */
+.sidebar{width:230px;min-width:230px;background:var(--surface);border-right:1px solid var(--border);
+  padding:18px 0;position:sticky;top:103px;height:calc(100vh - 103px);overflow:auto}
+.side-label{padding:8px 20px 6px;color:var(--light);font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.cat{display:block;width:100%;padding:8px 20px;text-align:left;border:0;background:transparent;
+  font-family:var(--sans);font-size:12.5px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.cat:hover{background:var(--bg);color:var(--text)}
+.cat.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+.count{float:right;color:var(--light);font:10px var(--mono)}
+
+/* MAIN */
+main{flex:1;padding:22px 26px}
+
+/* GRID — detailed cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+
+.card{display:block;text-decoration:none;color:inherit;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;padding:0;
+  transition:all .18s;overflow:hidden}
+.card:hover{border-color:var(--accent);box-shadow:0 4px 18px rgba(0,0,0,.09);transform:translateY(-1px)}
+
+/* Card top bar with code */
+.card-top{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px 8px;border-bottom:1px solid var(--bg);background:var(--bg)}
+.card-code{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);letter-spacing:.04em}
+.card-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+
+/* Badge styles */
+.badge{font:600 9px var(--mono);padding:3px 7px;border-radius:3px;letter-spacing:.05em;text-transform:uppercase}
+.b-mn{background:var(--green-bg);color:var(--green)}
+.b-cn{background:var(--orange-bg);color:var(--orange)}
+.b-kr{background:var(--blue-bg);color:var(--blue)}
+.b-tr{background:#fef0f0;color:#c0392b}
+.b-ru{background:#fff8e8;color:#8b6000}
+.b-pdf{background:var(--blue-bg);color:var(--blue)}
+.b-nopdf{background:#f5f5f5;color:#aaa}
+.b-a{background:#fff0ec;color:var(--accent)}
+.b-b{background:#fff8e8;color:#8b6000}
+.b-c{background:#f5f5f5;color:#888}
+.b-stock0{background:#fef0f0;color:#c0392b}
+.b-stocklow{background:#fff9e6;color:#b7770a}
+.b-stockok{background:var(--green-bg);color:var(--green)}
+
+/* Card body */
+.card-body{padding:12px 14px}
+.card-name{font-size:13px;font-weight:600;line-height:1.42;margin-bottom:10px;color:var(--text);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:37px}
+
+/* Spec rows inside card */
+.card-specs{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-bottom:10px}
+.spec-key{font-size:11px;color:var(--light);white-space:nowrap}
+.spec-val{font:500 11px var(--mono);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Card footer */
+.card-foot{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 14px;border-top:1px solid var(--bg);background:var(--bg)}
+.card-price{font:600 15px var(--mono);color:var(--text)}
+.card-price span{font-size:10px;color:var(--light);font-weight:400}
+.card-sub{font-size:11px;color:var(--light);text-align:right;max-width:120px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* PDF indicator strip */
+.pdf-strip{padding:6px 14px;font-size:11px;font-weight:600;text-align:center;letter-spacing:.04em}
+.pdf-strip.has{background:#e8f0fa;color:var(--blue)}
+.pdf-strip.none{background:#f5f5f5;color:#bbb}
+
+.empty,.loading{text-align:center;padding:80px 20px;color:var(--muted)}
+
+/* PAGINATION */
+.pages{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:28px 0}
+.pg{min-width:34px;height:34px;border:1px solid var(--border);background:var(--surface);
+  border-radius:6px;color:var(--muted);cursor:pointer;font:12px var(--mono);
+  display:flex;align-items:center;justify-content:center;padding:0 10px}
+.pg.active{background:var(--accent);border-color:var(--accent);color:white}
+.pg:disabled{opacity:.35;cursor:default}
+
+@media(max-width:760px){
+  header,.toolbar{padding-left:16px;padding-right:16px}
+  .sidebar{display:none}
+  main{padding:14px}
+  .origin-group,.abc-group{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span>C</span> CHIGLEL LLC — PRODUCT CATALOG</div>
+  <div class="toplinks">
+    <a href="https://www.chiglel.mn" target="_blank" rel="noopener">chiglel.mn ↗</a>
+    <a class="admin-link" href="admin/index.html">⚙ Admin</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <!-- Search -->
+  <div class="search-wrap">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="q" class="search" placeholder="Search name, code, model, brand...">
+  </div>
+
+  <!-- Origin buttons -->
+  <div class="origin-group">
+    <span class="origin-label">Origin:</span>
+    <button class="obtn active" data-o="" onclick="setOrigin('',this)">All</button>
+    <button class="obtn" data-o="Монгол" onclick="setOrigin('Монгол',this)">🇲🇳 Mongolia</button>
+    <button class="obtn" data-o="Хятад" onclick="setOrigin('Хятад',this)">🇨🇳 China</button>
+    <button class="obtn" data-o="Солонгос" onclick="setOrigin('Солонгос',this)">🇰🇷 Korea</button>
+    <button class="obtn" data-o="Турк" onclick="setOrigin('Турк',this)">🇹🇷 Turkey</button>
+    <button class="obtn" data-o="Орос" onclick="setOrigin('Орос',this)">🇷🇺 Russia</button>
+  </div>
+
+  <!-- ABC buttons -->
+  <div class="abc-group">
+    <button class="abcbtn active" data-abc="" onclick="setAbc('',this)">All</button>
+    <button class="abcbtn" data-abc="A" onclick="setAbc('A',this)">A</button>
+    <button class="abcbtn" data-abc="B" onclick="setAbc('B',this)">B</button>
+    <button class="abcbtn" data-abc="C" onclick="setAbc('C',this)">C</button>
+  </div>
+
+  <!-- PDF toggle -->
+  <button id="manualToggle" class="toggle" onclick="toggleManual()">📄 Has PDF</button>
+
+  <!-- Export -->
+  <button class="export-btn" onclick="exportExcel()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Export Excel
+  </button>
+
+  <div id="stats" class="stats">Loading...</div>
+</div>
+
+<div class="layout">
+  <aside id="side" class="sidebar">
+    <div class="side-label">Category</div>
+  </aside>
+
+  <main>
+    <div id="list" class="loading">Loading products...</div>
+    <div id="pages" class="pages"></div>
+  </main>
+</div>
+
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+let all = [], filtered = [], page = 1, cat = null, onlyManual = false;
+let activeOrigin = '', activeAbc = '';
+const SIZE = 48;
+const $ = id => document.getElementById(id);
+
+// Origin → badge class map
+const originBadge = {
+  'Монгол': ['🇲🇳 MN', 'b-mn'],
+  'Хятад':  ['🇨🇳 CN', 'b-cn'],
+  'Солонгос':['🇰🇷 KR', 'b-kr'],
+  'Турк':   ['🇹🇷 TR', 'b-tr'],
+  'Орос':   ['🇷🇺 RU', 'b-ru'],
+};
+
+async function load() {
+  try {
+    all = await (await fetch('data/products.json')).json();
+    buildSide();
+    apply();
+  } catch(e) {
+    $('list').innerHTML = '<div class="empty"><h3>Could not load products</h3><p>Check that data/products.json exists</p></div>';
+  }
+}
+
+function buildSide() {
+  const map = {};
+  all.forEach(p => map[p.category || '?'] = (map[p.category || '?'] || 0) + 1);
+  const side = $('side');
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat active';
+  allBtn.type = 'button';
+  allBtn.innerHTML = 'All <span class="count">' + all.length + '</span>';
+  allBtn.onclick = () => setCat(null, allBtn);
+  side.appendChild(allBtn);
+
+  Object.entries(map).sort((a,b) => b[1]-a[1]).forEach(([k,v]) => {
+    const b = document.createElement('button');
+    b.className = 'cat';
+    b.type = 'button';
+    b.innerHTML = k + ' <span class="count">' + v + '</span>';
+    b.onclick = () => setCat(k, b);
+    side.appendChild(b);
+  });
+}
+
+function setCat(next, btn) {
+  document.querySelectorAll('.cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  cat = next;
+  page = 1;
+  apply();
+}
+
+function setOrigin(val, btn) {
+  document.querySelectorAll('.obtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeOrigin = val;
+  page = 1;
+  apply();
+}
+
+function setAbc(val, btn) {
+  document.querySelectorAll('.abcbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeAbc = val;
+  page = 1;
+  apply();
+}
+
+function toggleManual() {
+  onlyManual = !onlyManual;
+  $('manualToggle').classList.toggle('active', onlyManual);
+  page = 1;
+  apply();
+}
+
+function apply() {
+  const q = $('q').value.trim().toLowerCase();
+  filtered = all.filter(p => {
+    if (cat && p.category !== cat) return false;
+    if (activeOrigin && p.origin !== activeOrigin) return false;
+    if (activeAbc && p.abc !== activeAbc) return false;
+    if (onlyManual && !p.manual_url) return false;
+    if (q && !([p.name,p.code,p.model,p.brand,p.subcategory].filter(Boolean).join(' ').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  $('stats').innerHTML = '<strong>' + filtered.length + '</strong> / ' + all.length + ' products';
+  render();
+  renderPages();
+}
+
+function makeBadge(text, cls) {
+  const s = document.createElement('span');
+  s.className = 'badge ' + cls;
+  s.textContent = text;
+  return s;
+}
+
+function render() {
+  const root = $('list');
+  root.textContent = '';
+  root.className = '';
+  const slice = filtered.slice((page-1)*SIZE, page*SIZE);
+
+  if (!slice.length) {
+    root.className = 'empty';
+    root.innerHTML = '<h3>No products found</h3><p>Try changing the search or filters</p>';
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  slice.forEach(p => {
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = 'product.html?code=' + encodeURIComponent(p.code);
+
+    // ── TOP BAR: code + badges ──
+    const top = document.createElement('div');
+    top.className = 'card-top';
+
+    const codeEl = document.createElement('div');
+    codeEl.className = 'card-code';
+    codeEl.textContent = '#' + p.code;
+    top.appendChild(codeEl);
+
+    const badges = document.createElement('div');
+    badges.className = 'card-badges';
+
+    // Origin badge
+    if (p.origin && originBadge[p.origin]) {
+      badges.appendChild(makeBadge(originBadge[p.origin][0], originBadge[p.origin][1]));
+    }
+    // ABC badge
+    if (p.abc) {
+      const abc = p.abc.toUpperCase();
+      badges.appendChild(makeBadge(abc, 'b-' + abc.toLowerCase()));
+    }
+    // Stock badge
+    if (p.stock !== null && p.stock !== undefined) {
+      if (p.stock === 0) badges.appendChild(makeBadge('Out', 'b-stock0'));
+      else if (p.stock <= 3) badges.appendChild(makeBadge(p.stock + ' left', 'b-stocklow'));
+      else badges.appendChild(makeBadge(p.stock + ' pcs', 'b-stockok'));
+    }
+    top.appendChild(badges);
+    a.appendChild(top);
+
+    // ── BODY ──
+    const body = document.createElement('div');
+    body.className = 'card-body';
+
+    // Name
+    const name = document.createElement('div');
+    name.className = 'card-name';
+    name.textContent = p.name || '—';
+    body.appendChild(name);
+
+    // Spec rows
+    const specs = document.createElement('div');
+    specs.className = 'card-specs';
+
+    const addSpec = (key, val) => {
+      if (!val && val !== 0) return;
+      const k = document.createElement('div');
+      k.className = 'spec-key';
+      k.textContent = key;
+      const v = document.createElement('div');
+      v.className = 'spec-val';
+      v.textContent = val;
+      specs.appendChild(k);
+      specs.appendChild(v);
+    };
+
+    addSpec('Brand', p.brand);
+    addSpec('Model', p.model);
+    addSpec('Origin', p.origin);
+    if (p.dims && (p.dims.length || p.dims.width || p.dims.height)) {
+      const parts = [];
+      if (p.dims.length) parts.push(p.dims.length + 'mm');
+      if (p.dims.width) parts.push(p.dims.width + 'mm');
+      if (p.dims.height) parts.push(p.dims.height + 'mm');
+      addSpec('Size', parts.join(' × '));
+    }
+    if (p.weight) addSpec('Weight', p.weight + ' kg');
+    if (p.voltage) addSpec('Voltage', p.voltage + 'V');
+    if (p.power_kw) addSpec('Power', p.power_kw + ' kW');
+    if (p.features) addSpec('Note', p.features);
+
+    if (specs.children.length) body.appendChild(specs);
+    a.appendChild(body);
+
+    // ── PDF STRIP ──
+    const strip = document.createElement('div');
+    strip.className = 'pdf-strip ' + (p.manual_url ? 'has' : 'none');
+    strip.textContent = p.manual_url ? '📄 User Manual PDF available' : '— No manual PDF';
+    a.appendChild(strip);
+
+    // ── FOOTER: price + subcategory ──
+    const foot = document.createElement('div');
+    foot.className = 'card-foot';
+
+    const price = document.createElement('div');
+    price.className = 'card-price';
+    if (p.price) {
+      price.textContent = Number(p.price).toLocaleString();
+      const u = document.createElement('span');
+      u.textContent = ' MNT';
+      price.appendChild(u);
+    } else {
+      const u = document.createElement('span');
+      u.textContent = 'No price';
+      price.appendChild(u);
+    }
+
+    const sub = document.createElement('div');
+    sub.className = 'card-sub';
+    sub.textContent = p.subcategory || '';
+
+    foot.appendChild(price);
+    foot.appendChild(sub);
+    a.appendChild(foot);
+
+    grid.appendChild(a);
+  });
+
+  root.appendChild(grid);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderPages() {
+  const total = Math.ceil(filtered.length / SIZE);
+  const root = $('pages');
+  root.textContent = '';
+  if (total <= 1) return;
+
+  const mk = (label, p, dis, act) => {
+    const b = document.createElement('button');
+    b.className = 'pg' + (act ? ' active' : '');
+    b.type = 'button';
+    b.textContent = label;
+    b.disabled = dis;
+    b.onclick = () => { page = p; render(); renderPages(); };
+    root.appendChild(b);
+  };
+
+  mk('←', page-1, page===1);
+  const range = [];
+  for (let i = 1; i <= total; i++) {
+    if (i===1 || i===total || Math.abs(i-page)<=2) range.push(i);
+    else if (range[range.length-1] !== '…') range.push('…');
+  }
+  range.forEach(p => {
+    if (p === '…') {
+      const s = document.createElement('span');
+      s.style.cssText = 'display:flex;align-items:center;color:var(--light);padding:0 4px';
+      s.textContent = '…';
+      root.appendChild(s);
+    } else {
+      mk(p, p, false, p===page);
+    }
+  });
+  mk('→', page+1, page===total);
+}
+
+// ── EXPORT TO EXCEL (same column format as original) ──
+function exportExcel() {
+  const data = filtered.length > 0 ? filtered : all;
+
+  const rows = data.map(p => ({
+    'Барааны код':           p.code || '',
+    'Барааны нэр':           p.name || '',
+    'Байршил':               p.location || '',
+    'Ангилал':               p.category || '',
+    'Дэд ангилал':           p.subcategory || '',
+    'Гарал үүсэл':           p.origin || '',
+    'Нэгжийн үнэ':           p.price || '',
+    'Үлдэгдэл':              p.stock != null ? p.stock : '',
+    'Үлдэгдэл дүн':          p.stock_value != null ? p.stock_value : '',
+    'ABC':                   p.abc || '',
+    'хайрцаг дахь тоо':      '',
+    'УРТ/мм/':               p.dims?.length || '',
+    'ӨРГӨН/мм/':             p.dims?.width || '',
+    'ӨНДӨР/мм/':             p.dims?.height || '',
+    'ЖИН/кг/':               p.weight || '',
+    'ОНЦЛОГ':                p.features || '',
+    'ХҮЧДЭЛ/волт/':          p.voltage || '',
+    'ХҮЧ/кВт/':              p.power_kw || '',
+    'БРЕНД':                 p.brand || '',
+    'Марк':                  p.model || '',
+    'Гарын авлага':          p.has_manual ? 'Байгаа' : '',
+    'PDF линк':              p.manual_url || '',
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:12},{wch:40},{wch:12},{wch:30},{wch:22},{wch:10},{wch:14},
+    {wch:10},{wch:14},{wch:6},{wch:12},{wch:10},{wch:10},{wch:10},
+    {wch:10},{wch:30},{wch:12},{wch:10},{wch:20},{wch:16},{wch:12},{wch:45}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet2');
+
+  const now = new Date();
+  const date = now.toISOString().slice(0,10);
+  const filename = 'Chiglel_catalog_' + date + '.xlsx';
+
+  XLSX.writeFile(wb, filename);
+}
+
+// ── EVENT LISTENERS ──
+$('q').oninput = () => { page = 1; apply(); };
+
+load();
+</script>
+</body>
+</html>
