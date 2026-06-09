@@ -1,73 +1,36 @@
-# 📦 Салбар үлдэгдэл Dashboard
+﻿# Чиглэл ХХК — Бараа Каталог
 
-ERP stock dashboard — shows items missing from branches vs warehouse, plus imbalanced stock distribution across branches.
+GitHub Pages дээр ажилладаг бараа каталог систем.
 
-## Features
-- 🔍 **Missing items** per branch (Жижиг / Том бараа)
-- ⚖️ **Imbalanced stock** view comparing all branches
-- 📂 **Category / Subcategory** multi-select filters
-- 🏭 **Warehouse view**: combined total OR expanded per-warehouse breakdown
-- 📥 **Export to Excel** with date & branch title header
-- 🖨️ **Export to PDF** via browser print
-- 🔎 **Multi-select dropdowns** for all filters (like Excel filter)
+## Тохируулах
 
-## Excel columns expected
-| Column | Required | Notes |
-|--------|----------|-------|
-| Салбар | ✅ | Branch / warehouse name |
-| Барааны код | ✅ | Item code |
-| Барааны нэр | ✅ | Item name |
-| Тоо | ✅ | Quantity |
-| Байршил | ✅ | `Жижиг бараа` or `Том бараа` |
-| Ангилал | ⬜ Optional | Category |
-| Дэд ангилал | ⬜ Optional | Subcategory |
+Public GitHub Pages үнэгүй боловч public repo дээр үнэ болон барааны мэдээлэл ил харагдана. Энэ хувилбараас нөөц / stock мэдээллийг бүрэн хассан.
 
-Category/Subcategory columns are optional — if not present the filter just won't appear.
+## Admin token
 
-## One-time GitHub setup
+Admin page нь GitHub token-ийг browser-оос GitHub API руу илгээдэг client-side хэрэгсэл хэвээр байна. Token-ийг browser storage-д хадгалахгүй. Repo нэрийг л sessionStorage-д санана.
 
-```bash
-git init
-git add .
-git commit -m "initial"
-git branch -M main
-git remote add origin https://github.com/YOUR/REPO.git
-git push -u origin main
-```
+Зөвлөмж:
 
-Then: **Settings → Pages → Source: main / (root) → Save**
+1. Fine-grained personal access token үүсгэ.
+2. Repository access: зөвхөн энэ repo.
+3. Permissions: Contents → Read and write.
+4. Expiration: богино хугацаа.
 
-Live at: `https://YOUR.github.io/REPO/`
+Илүү найдвартай хувилбар бол жижиг backend эсвэл GitHub Actions admin workflow ашиглах.
 
-## Daily update
+## Засварууд
 
-Replace `data/нийт.xlsx` then:
+- Product data-г public хуудсуудад escape/DOM-safe байдлаар харуулна.
+- PDF badge/filter зөвхөн manual_url байгаа үед ажиллана.
+- Save хийх үед GitHub дээрх latest products.json-г дахин татаж, өөрчилсөн бараануудыг merge хийж commit хийнэ.
+- Google Drive PDF link-ээс file ID parse хийж preview/download URL тусад нь үүсгэнэ.
+- Admin дээр нэр, үнэ, ангилал, гарал, бренд, марк, онцлог, хэмжээ, жин, хүчдэл, кВт, PDF link засна.
+- Шинэ бараа нэмэх боломж нэмэгдсэн.
 
-```bash
-git add data/нийт.xlsx
-git commit -m "stock update $(date +%Y-%m-%d)"
-git push
-```
+## PDF
 
-GitHub Actions rebuilds `data/stock.json` automatically (~1 min).
+Google Drive дээр PDF upload хийгээд Share → Anyone with the link болгоно. Admin дээр PDF талбарт Drive link оруулна.
 
-## Run locally
-
-```bash
-pip install pandas openpyxl
-python scripts/build_data.py
-python -m http.server 8000
-# open http://localhost:8000
-```
-
-## Project structure
-
-```
-├── index.html                  ← Dashboard
-├── data/
-│   ├── нийт.xlsx               ← ← Replace to update
-│   └── stock.json              ← Auto-generated
-├── scripts/
-│   └── build_data.py           ← Excel → JSON converter
-└── .github/workflows/build.yml ← Auto-rebuild on push
-```
+---
+Чиглэл ХХК | info@chiglel.mn | +976 7611 5333
